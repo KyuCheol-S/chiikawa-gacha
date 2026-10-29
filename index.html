@@ -319,6 +319,20 @@
   .chip.on { background: var(--c, var(--accent)); border-color: var(--c, var(--accent)); color: #fff; }
   .chip .n { opacity: .6; margin-left: 4px; font-size: 11px; }
   .cgroup { flex-basis: 100%; font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .ftoggles { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+
+  /* ── 즐겨찾기 별 ── */
+  .fav-btn {
+    position: absolute; top: 12px; right: 12px; z-index: 3; width: 30px; height: 30px; border-radius: 50%; border: 0;
+    background: #ffffffe6; color: #a8979d; font-size: 17px; line-height: 1; cursor: pointer; box-shadow: 0 1px 4px #0003;
+    display: grid; place-items: center; padding: 0; transition: transform .15s;
+  }
+  .fav-btn:hover { transform: scale(1.12); }
+  .fav-btn.on { color: #f5a300; }
+  .fav-btn:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 2px; }
+  .tray .fav-btn, .results .fav-btn { top: 8px; right: 8px; width: 24px; height: 24px; font-size: 14px; }
+  .zoom-sheet > .fav-btn { top: 22px; left: 22px; right: auto; width: 38px; height: 38px; font-size: 21px; }
+  .results .item, .reveal-card { cursor: zoom-in; }
   .ffoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); padding-top: 8px; border-top: 1px solid var(--line); margin-top: 6px; }
   .ffoot input { accent-color: var(--accent); vertical-align: middle; }
 
@@ -733,6 +747,61 @@ add("sub", "SSR", "⭐", [
   ["4571609362562", "files/4571609362562_1_4b79ea04-b365-4b5b-89ef-dd682f2b15f8.jpg", "치이카와 파크 안는 인형 쿠션 (카부토무시)"],
 ]);
 
+// ── 카니 관련 굿즈 (카니 가장 마스코트는 위 "카니" 묶음) ──
+add("kani", "N", "🦀", [
+  ["4991863509921", "files/4991863509921_1.jpg", "mimi펜 (카니 가장 치이카와)"],
+  ["4905114958789", "files/4905114923060_1.jpg", "넥커버 (카니 집게)"],
+  ["4995027178282", "files/4995027178282_1.jpg", "B6 코믹 먼슬리 다이어리 2026 (카니 집게 튀김)"],
+]);
+
+// ── v1.7 추가 굿즈 ──
+add("basic", "R", "🥐", [
+  ["4571609335344", "files/4571609335344_1.jpg", "치이카와 베이커리 코로네 마스코트 (치이카와)"],
+  ["4571609335351", "files/4571609335351_1.jpg", "치이카와 베이커리 코로네 마스코트 (하치와레)"],
+  ["4571609335368", "files/4571609335368_1.jpg", "치이카와 베이커리 코로네 마스코트 (우사기)"],
+  ["4571609335375", "files/4571609335375_1.jpg", "치이카와 베이커리 코로네 마스코트 (모몽가)"],
+  ["4571609335382", "files/4571609335382_1.jpg", "치이카와 베이커리 코로네 마스코트 (쿠리만쥬)"],
+  ["4571609335399", "files/4571609335399_1.jpg", "치이카와 베이커리 코로네 마스코트 (시샤)"],
+  ["4571609335412", "files/4571609335412_1.jpg", "치이카와 베이커리 코로네 마스코트 (헌책방)"],
+  ["4582662946873", "files/4582662946873_1.jpg", "치이카와 베이커리 빵 같은 쫀득 마스코트 (치이카와)"],
+  ["4582662946880", "files/4582662946880_1.jpg", "치이카와 베이커리 빵 같은 쫀득 마스코트 (하치와레)"],
+  ["4582662946897", "files/4582662946897_1.jpg", "치이카와 베이커리 빵 같은 쫀득 마스코트 (우사기)"],
+  ["4582662946903", "files/4582662946903_1.jpg", "치이카와 베이커리 빵 같은 쫀득 마스코트 (모몽가)"],
+  ["4582662946910", "files/4582662946910_1.jpg", "치이카와 베이커리 빵 같은 쫀득 마스코트 (쿠리만쥬)"],
+  ["4582662946927", "files/4582662946927_1.jpg", "치이카와 베이커리 빵 같은 쫀득 마스코트 (시샤)"],
+  ["4582662946941", "files/4582662946941_1.jpg", "치이카와 베이커리 빵 같은 쫀득 마스코트 (헌책방)"],
+  ["4571609351351", "files/4571609351351_1_cf874491-5152-45f1-95d5-626ed9180013.jpg", "고기만두 먹자 마스코트 (치이카와)"],
+  ["4571609351368", "files/4571609351368_1_85a179c6-9af0-48aa-b406-d64769f7e1a6.jpg", "고기만두 먹자 마스코트 (하치와레)"],
+  ["4571609351375", "files/4571609351375_1.jpg", "고기만두 먹자 마스코트 (우사기)"],
+  ["4571609351382", "files/4571609351382_1_d17b19db-80ac-4f12-b7b2-e53feada6562.jpg", "고기만두 먹자 마스코트 (모몽가)"],
+  ["4571609397298", "files/4571609397298_1.jpg", "숙취 마스코트 (치이카와)"],
+  ["4571609397304", "files/4571609397304_1.jpg", "숙취 마스코트 (하치와레)"],
+  ["4571609397311", "files/4571609397311_1.jpg", "숙취 마스코트 (우사기)"],
+  ["4571609397267", "files/4571609397267_1.jpg", "살짝 취한 마스코트 (치이카와)"],
+  ["4571609397274", "files/4571609397274_1.jpg", "살짝 취한 마스코트 (하치와레)"],
+  ["4571609397281", "files/4571609397281_1.jpg", "살짝 취한 마스코트 (우사기)"],
+]);
+add("basic", "SR", "✨", [
+  ["4582662970496", "files/4582662970496_1.jpg", "초 마지컬 치이카와 파워업 마스코트 (치이카와)"],
+  ["4582662970489", "files/4582662970489_1.jpg", "초 마지컬 치이카와 파워업 마스코트 (하치와레)"],
+  ["4582662970472", "files/4582662970472_1.jpg", "초 마지컬 치이카와 파워업 마스코트 (우사기)"],
+  ["4582662970465", "files/4582662970465_1.jpg", "초 마지컬 치이카와 파워업 마스코트 (모몽가)"],
+  ["4582662970458", "files/4582662970458_1.jpg", "초 마지컬 치이카와 파워업 마스코트 (쿠리만쥬)"],
+  ["4582662970441", "files/4582662970441_1.jpg", "초 마지컬 치이카와 파워업 마스코트 (시샤)"],
+  ["4571609346142", "files/4571609346142_1.jpg", "폭신폭신 파자마 마스코트 (치이카와)"],
+  ["4571609346159", "files/4571609346159_1.jpg", "폭신폭신 파자마 마스코트 (하치와레)"],
+  ["4571609346166", "files/4571609346166_1.jpg", "폭신폭신 파자마 마스코트 (우사기)"],
+]);
+add("plush", "SSR", "🧸", [
+  ["4571609412281", "files/2571609412281_1.jpg", "키라멕코 크리스마스 테디베어 인형 (치이카와)"],
+  ["4571609412298", "files/2571609412298_1.jpg", "키라멕코 크리스마스 테디베어 인형 (하치와레)"],
+  ["4571609412304", "files/2571609412304_1_1c5c9635-0d22-4f58-a0d1-7a05904f7c25.jpg", "키라멕코 크리스마스 테디베어 인형 (우사기)"],
+  ["4582662958531", "files/4582662958531_1.jpg", "애틋한 얼굴의 모몽가 인형"],
+  ["4571609406839", "files/4571609406839_1.jpg", "치이카와 파크 할로윈 호박 우사기 인형 S"],
+  ["4582662975453", "files/4582662975453_1.jpg", "시샤 축제 아운 시샤 인형 '우웅…'"],
+  ["4582662975446", "files/4582662975446_1.jpg", "시샤 축제 아운 시샤 인형 '아…'"],
+]);
+
 // ── 분류: 캐릭터 · 종류 · 컬렉션 ──
 // 캐릭터는 이름 끝 괄호 안(없으면 이름 전체)에서 찾습니다. 컬렉션 이름에도 들어가는 "치이카와"는 다른 캐릭터가 없을 때만 고르고,
 // 헌책방이나 여러 캐릭터가 함께 나오는 굿즈는 "기타"로 둡니다.
@@ -743,7 +812,7 @@ const CHARACTER_GROUPS = [
 ];
 const CHARACTERS = [...CHARACTER_GROUPS.flatMap(g => g[1]), "기타"];
 const TYPE_RULES = [
-  [/스티커|씰/, "스티커"], [/손수건/, "손수건"], [/마그넷/, "마그넷"], [/참/, "아크릴 참"], [/샤프/, "문구"],
+  [/스티커|씰/, "스티커"], [/손수건/, "손수건"], [/마그넷/, "마그넷"], [/참/, "아크릴 참"], [/샤프|펜|다이어리/, "문구"], [/넥커버/, "패션 소품"],
   [/키홀더/, "키홀더"], [/피규어/, "피규어"], [/키링/, "마스코트 키링"], [/인형/, "인형"], [/마스코트/, "마스코트"],
 ];
 // 위에서부터 먼저 맞는 규칙이 컬렉션(출시 시리즈 주제)이 됩니다.
@@ -753,13 +822,20 @@ const COLL_RULES = [
   [/마지컬/, "마지컬 치이카와"], [/영화/, "영화 치이카와"], [/데스크톱/, "데스크톱 걸이 인형"], [/천사♡악마/, "천사♡악마"], [/도쿄 기념품/, "도쿄 기념품"],
   [/치이카와랜드/, "치이카와랜드"], [/봉봉드롭/, "봉봉드롭 씰"], [/푸와코로/, "푸와코로"], [/치이카와 파크/, "치이카와 파크"],
   [/살짝 포즈/, "살짝 포즈"], [/드라이브/, "드라이브다!"], [/스웨트/, "스웨트"], [/엉덩이/, "엉덩이 인형"],
+  [/고기만두/, "고기만두 먹자"], [/숙취|취한/, "취했어"], [/파자마/, "폭신폭신 파자마"], [/시샤 축제/, "시샤 축제"],
 ];
 const TYPES = [...new Set(TYPE_RULES.map(r => r[1]))];
 const COLLECTIONS = [...COLL_RULES.map(r => r[1]), "기본 라인"];
 for (const it of ITEMS) {
   const paren = (it.name.match(/\(([^)]*)\)\s*$/) || [])[1];
   const src = paren || it.name.replace(/치이카와(랜드| 파크| 베이커리| 레스토랑)/g, "");
-  it.char = CHARACTERS.find(c => c !== "기타" && c !== "치이카와" && src.includes(c)) || (src.includes("치이카와") ? "치이카와" : "기타");
+  // 한 굿즈에 여러 캐릭터가 나올 수 있어요: "세이렌과 인어", "카니 가장 … (치이카와)"는 둘 다 걸리게 합니다.
+  // 카니는 가장(코스튬)·집게처럼 이름 어디에 나와도 카니로 함께 분류합니다.
+  const found = CHARACTERS.filter(c => c !== "기타" && c !== "치이카와" && src.includes(c));
+  if (paren ? paren.includes("치이카와") : (!found.length && src.includes("치이카와"))) found.unshift("치이카와");
+  if (it.name.includes("카니") && !found.includes("카니")) found.push("카니");
+  it.chars = found.length ? found : ["기타"];
+  it.char = it.chars[0];
   it.type = (TYPE_RULES.find(([re]) => re.test(it.name)) || [, "기타"])[1];
   it.coll = (COLL_RULES.find(([re]) => re.test(it.name)) || [, "기본 라인"])[1];
 }
@@ -776,7 +852,7 @@ const V2_IDS = ["4901770054131","4901770054148","4901770054155","4901770054179",
 let state = load();
 
 function load() {
-  const fresh = { coins: START_COINS, owned: {}, pity: 0, lastDaily: "", total: 0, muted: false, volume: 0.7, theme: "", room: [], wall: "pink" };
+  const fresh = { coins: START_COINS, owned: {}, pity: 0, lastDaily: "", total: 0, muted: false, volume: 0.7, theme: "", room: [], wall: "pink", favs: {} };
   try {
     const v3 = localStorage.getItem(STORE_KEY);
     if (v3) return { ...fresh, ...JSON.parse(v3) };
@@ -889,6 +965,30 @@ function pullOne(minRarity) {
 }
 const rank = r => RARITIES.indexOf(r);
 
+// ── 즐겨찾기 ── 카드 오른쪽 위 별 버튼. 같은 굿즈의 별은 화면 어디에 있든 함께 바뀝니다.
+function favButton(item) {
+  const b = document.createElement("button");
+  b.className = "fav-btn";
+  b.dataset.id = item.id;
+  syncFav(b);
+  b.onclick = e => { e.stopPropagation(); toggleFav(item.id); };
+  return b;
+}
+function syncFav(b) {
+  const on = !!state.favs[b.dataset.id];
+  b.classList.toggle("on", on);
+  b.textContent = on ? "★" : "☆";
+  b.title = on ? "즐겨찾기 해제" : "즐겨찾기";
+  b.setAttribute("aria-label", b.title);
+  b.setAttribute("aria-pressed", on);
+}
+function toggleFav(id) {
+  if (state.favs[id]) delete state.favs[id]; else state.favs[id] = true;
+  save();
+  document.querySelectorAll(`.fav-btn[data-id="${id}"]`).forEach(syncFav);
+  render();
+}
+
 // 이미지: 공식 상점 원본 주소를 먼저 쓰고(GitHub Pages·로컬), 외부 이미지가 막힌 곳(claude.ai)에서는
 // 페이지와 함께 올린 img/<JAN>.jpg(fetch-images.ps1로 받음), 그것도 없으면 onFail(이모지 등)로 대신합니다.
 function setImg(img, item, onFail) {
@@ -908,6 +1008,7 @@ function itemEl(item, opts = {}) {
   setImg(img, item, () => { art.textContent = item.art; });
   art.appendChild(img);
   el.appendChild(art);
+  if (opts.favBtn) el.appendChild(favButton(item));
   el.insertAdjacentHTML("beforeend", `
     <div class="rar">${item.rarity}</div>
     <div class="ser">${item.coll}</div>
@@ -1135,7 +1236,8 @@ async function openSequence(results) {
     cap.classList.remove("float");
     cap.classList.add("open");
     revealFx(r);
-    const card = itemEl(item, { isNew });
+    const card = itemEl(item, { isNew, favBtn: true });
+    card.onclick = () => openZoom(item);
     card.classList.add("reveal-card", "pop");
     $("revealSlot").appendChild(card);
     await wait(r === "SSR" ? 1200 : 500);
@@ -1167,7 +1269,8 @@ async function openSequence(results) {
   const box = $("results");
   box.innerHTML = "";
   results.forEach((res, i) => {
-    const el = itemEl(res.item, { isNew: res.isNew });
+    const el = itemEl(res.item, { isNew: res.isNew, favBtn: true });
+    el.onclick = () => openZoom(res.item);
     el.style.animationDelay = `${i * 0.06}s`;
     box.appendChild(el);
   });
@@ -1183,21 +1286,27 @@ async function openSequence(results) {
 // 같은 줄 안에서는 여러 개 선택 시 "또는", 줄끼리는 "그리고"로 걸러냅니다.
 const FILTER_DIMS = [
   { key: "rarity", label: "등급", values: RARITIES, color: v => `var(--${v})` },
-  { key: "char", label: "캐릭터", values: CHARACTERS, groups: [...CHARACTER_GROUPS, ["", ["기타"]]] },
+  { key: "chars", label: "캐릭터", values: CHARACTERS, groups: [...CHARACTER_GROUPS, ["", ["기타"]]] },
   { key: "type", label: "종류", values: TYPES },
   { key: "coll", label: "컬렉션", values: COLLECTIONS },
 ];
+// 캐릭터(chars)처럼 값이 여러 개인 분류도 있어서 항상 배열로 꺼내 비교합니다.
+const valsOf = (i, key) => Array.isArray(i[key]) ? i[key] : [i[key]];
+const hasVal = (i, key, v) => valsOf(i, key).includes(v);
 function makeFilter(opts = {}) {
-  return { sel: Object.fromEntries(FILTER_DIMS.map(d => [d.key, new Set()])), ownedOnly: false, open: true, ...opts };
+  return { sel: Object.fromEntries(FILTER_DIMS.map(d => [d.key, new Set()])), ownedOnly: false, favOnly: false, open: true, ...opts };
 }
 function applyFilter(items, f) {
-  return items.filter(i => FILTER_DIMS.every(d => !f.sel[d.key].size || f.sel[d.key].has(i[d.key])) && (!f.ownedOnly || state.owned[i.id]));
+  return items.filter(i => FILTER_DIMS.every(d => !f.sel[d.key].size || valsOf(i, d.key).some(v => f.sel[d.key].has(v)))
+    && (!f.ownedOnly || state.owned[i.id]) && (!f.favOnly || state.favs[i.id]));
 }
+// 즐겨찾기한 굿즈가 먼저, 그다음 등급 높은 순
+const byFavThenRank = (a, b) => (!!state.favs[b.id] - !!state.favs[a.id]) || rank(b.rarity) - rank(a.rarity);
 // base: 이 화면에서 걸러낼 전체 목록 (칩 옆 개수와 보이는 칩을 정하는 데 씀)
 function renderFilter(container, f, base, onChange, opts = {}) {
   container.innerHTML = "";
   container.className = "filter-panel";
-  const active = FILTER_DIMS.reduce((n, d) => n + f.sel[d.key].size, 0) + (f.ownedOnly ? 1 : 0);
+  const active = FILTER_DIMS.reduce((n, d) => n + f.sel[d.key].size, 0) + (f.ownedOnly ? 1 : 0) + (f.favOnly ? 1 : 0);
   const head = document.createElement("div");
   head.className = "fhead";
   head.innerHTML = `<b>🔍 필터</b><span>${active ? `${active}개 선택` : "전체 보기"} · ${applyFilter(base, f).length}개</span>`;
@@ -1226,10 +1335,10 @@ function renderFilter(container, f, base, onChange, opts = {}) {
     const set = f.sel[d.key];
     chip("전체", !set.size, () => set.clear());
     for (const [group, values] of d.groups || [["", d.values]]) {
-      const shown = values.filter(v => base.some(i => i[d.key] === v));
+      const shown = values.filter(v => base.some(i => hasVal(i, d.key, v)));
       if (group && shown.length) chips.insertAdjacentHTML("beforeend", `<span class="cgroup">${group}</span>`);
       for (const v of shown) {
-        const n = base.filter(i => i[d.key] === v).length;
+        const n = base.filter(i => hasVal(i, d.key, v)).length;
         chip(`${v}<span class="n">${n}</span>`, set.has(v), () => set.has(v) ? set.delete(v) : set.add(v), d.color && d.color(v));
       }
     }
@@ -1238,16 +1347,21 @@ function renderFilter(container, f, base, onChange, opts = {}) {
   }
   const foot = document.createElement("div");
   foot.className = "ffoot";
-  if (opts.ownedToggle) {
+  const toggles = document.createElement("span");
+  toggles.className = "ftoggles";
+  const check = (label, key) => {
     const lab = document.createElement("label");
-    lab.innerHTML = `<input type="checkbox" ${f.ownedOnly ? "checked" : ""}> 뽑은 굿즈만 보기`;
-    lab.querySelector("input").onchange = e => { f.ownedOnly = e.target.checked; onChange(); };
-    foot.appendChild(lab);
-  } else foot.appendChild(document.createElement("span"));
+    lab.innerHTML = `<input type="checkbox" ${f[key] ? "checked" : ""}> ${label}`;
+    lab.querySelector("input").onchange = e => { f[key] = e.target.checked; onChange(); };
+    toggles.appendChild(lab);
+  };
+  check("⭐ 즐겨찾기만", "favOnly");
+  if (opts.ownedToggle) check("뽑은 굿즈만", "ownedOnly");
+  foot.appendChild(toggles);
   const reset = document.createElement("button");
   reset.className = "chip";
   reset.textContent = "↺ 초기화";
-  reset.onclick = () => { FILTER_DIMS.forEach(d => f.sel[d.key].clear()); f.ownedOnly = false; onChange(); };
+  reset.onclick = () => { FILTER_DIMS.forEach(d => f.sel[d.key].clear()); f.ownedOnly = false; f.favOnly = false; onChange(); };
   foot.appendChild(reset);
   container.appendChild(foot);
 }
@@ -1284,10 +1398,10 @@ function render() {
   const grid = $("bookGrid");
   grid.innerHTML = "";
   applyFilter(ITEMS, bookFilter)
-    .sort((a, b) => rank(b.rarity) - rank(a.rarity))
+    .sort(byFavThenRank)
     .forEach(i => {
       const n = state.owned[i.id];
-      const el = itemEl(i, { locked: !n, count: n, link: true });
+      const el = itemEl(i, { locked: !n, count: n, link: true, favBtn: !!n });
       if (n) el.onclick = e => { if (!e.target.closest("a")) openZoom(i); };
       grid.appendChild(el);
     });
@@ -1296,6 +1410,12 @@ function render() {
 
 // ── 업데이트 로그 (새 항목은 맨 위에 추가) ──
 const UPDATE_LOG = [
+  { ver: "v1.7", date: "2026-10-29", notes: [
+    "⭐ 즐겨찾기: 카드 오른쪽 위 별로 등록, 도감 · 마이룸 보관함에서 맨 앞에 정렬, \"즐겨찾기만\" 필터",
+    "뽑기 결과 화면에서도 굿즈를 눌러 크게 보기",
+    "🦀 카니 분류 정리: 카니 가장 · 카니 집게 굿즈도 캐릭터 \"카니\"로 함께 분류 (한 굿즈에 여러 캐릭터)",
+    "굿즈 43종 추가 (총 179종): 베이커리 코로네 · 쫀득 마스코트, 고기만두, 파워업, 파자마, 테디베어 등",
+  ] },
   { ver: "v1.6", date: "2026-10-29", notes: [
     "📱 모바일 · 태블릿 · 🖥️ 데스크톱 반응형 화면",
     "가챠 머신과 버튼을 화면 가운데로, 데스크톱은 머신 옆에 조작 패널",
@@ -1381,9 +1501,11 @@ function openZoom(item) {
   $("zoomImg").alt = item.name;
   $("zoomInfo").innerHTML = `
     <div class="rar" style="color:var(--${item.rarity})">${item.rarity}</div>
-    <div style="color:var(--muted);font-size:13px">${item.char} · ${item.type} · ${item.coll}</div>
+    <div style="color:var(--muted);font-size:13px">${item.chars.join(" · ")} · ${item.type} · ${item.coll}</div>
     <div><b>${item.name}</b> ×${state.owned[item.id] || 0}</div>
     <a href="${SHOP}${item.jan}" target="_blank" rel="noopener">공식 상품 페이지 ↗</a>`;
+  document.querySelector(".zoom-sheet > .fav-btn")?.remove();
+  if (state.owned[item.id]) document.querySelector(".zoom-sheet").appendChild(favButton(item));
   $("zoom").classList.remove("hidden");
 }
 $("zoomFrame").onclick = e => {
@@ -1437,7 +1559,7 @@ function renderRoom() {
 
   const tray = $("tray");
   tray.innerHTML = "";
-  const owned = ITEMS.filter(i => state.owned[i.id]).sort((a, b) => rank(b.rarity) - rank(a.rarity));
+  const owned = ITEMS.filter(i => state.owned[i.id]).sort(byFavThenRank);
   renderFilter($("trayFilter"), trayFilter, owned, renderRoom);
   let left = 0;
   for (const i of owned) left += state.owned[i.id] - placedCount(i.id);
