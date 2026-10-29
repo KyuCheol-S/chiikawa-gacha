@@ -297,6 +297,8 @@
   .placed { position: absolute; transform: translate(-50%, -100%); cursor: grab; touch-action: none; }
   .placed:active { cursor: grabbing; }
   .placed img { display: block; width: 100%; pointer-events: none; -webkit-user-drag: none; filter: drop-shadow(0 6px 5px #00000030); transition: opacity .2s; }
+  /* 누끼를 따지 않는 굿즈는 둥근 사진 카드처럼 */
+  .placed img.photo { border-radius: 14%; border: 3px solid #fff; background: #fff; }
   .placed.sel { outline: 2px dashed var(--accent-dark); outline-offset: 3px; border-radius: 6px; }
   /* 선택한 굿즈의 손잡이: 점선 바깥 모서리 */
   .ph { position: absolute; top: -20px; width: 30px; height: 30px; border-radius: 50%; border: 0; padding: 0; display: none; place-items: center;
@@ -1293,11 +1295,76 @@ function loadForCanvas(item) {
 function cleanedUrl(item, cutout) {
   const key = item.id + (cutout ? ":cut" : "");
   if (!cleanCache.has(key)) {
-    cleanCache.set(key, loadForCanvas(item).then(im => im && processImage(im, cutout)).catch(() => null));
+    cleanCache.set(key, loadForCanvas(item).then(im => im && processImage(im, cutout, item)).catch(() => null));
   }
   return cleanCache.get(key);
 }
-function processImage(im, cutout) {
+// 흰 배경 지우기 (마이룸용 누끼)
+// 공식 사진 배경은 거의 순백(255)이고, 흰 인형 털은 240~250 언저리에 결이 있어요.
+// 그냥 "흰색과 이어진 곳"을 지우면 털과 배경이 맞닿은 틈으로 번져 인형 몸통까지 지워지므로,
+//  1) 순백에 가깝고(≥T) 색이 거의 없는 픽셀만 배경 후보로 보고
+//  2) 주변 (2R+1)×(2R+1) 칸이 전부 배경 후보인 "넓은 흰 땅"으로만 가장자리에서부터 퍼져 나가게 한 뒤
+//  3) 그렇게 찾은 배경을 R칸만큼만 다시 넓혀 경계를 깔끔하게 다듬고, 경계의 밝은 픽셀은 반투명으로 녹입니다.
+// 굿즈마다 사진이 달라 잘 안 되는 것은 CUT_TUNING에서 T·R을 바꾸거나 false(누끼 없이 둥근 사진 카드)로 둡니다.
+// 186종을 하나씩 어두운 배경에 그려 검토한 결과 (2026-10-29)
+const CUT_TUNING = {
+  "4571609397304": { R: 6 },   // 숙취 마스코트 (하치와레): 테두리 없는 흰 말풍선이 배경과 붙어 있어 더 넓은 기준으로
+  "4905114958789": false,      // 넥커버 (카니 집게): 사진 배경이 연회색이라 누끼 대신 사진 카드로
+};
+function cutoutBackground(p, w, h, { T = 248, R = 3 } = {}) {
+  const n = w * h;
+  const cand = new Uint8Array(n);
+  for (let i = 0, k = 0; i < n; i++, k += 4) {
+    const r = p[k], g = p[k + 1], b = p[k + 2];
+    cand[i] = r >= T && g >= T && b >= T && Math.max(r, g, b) - Math.min(r, g, b) <= 8 ? 1 : 0;
+  }
+  // 적분 영상으로 각 픽셀 주변 상자 안의 후보 개수를 빠르게 셈
+  const W1 = w + 1, sum = new Int32Array(W1 * (h + 1));
+  for (let y = 0; y < h; y++) {
+    let row = 0;
+    for (let x = 0; x < w; x++) { row += cand[y * w + x]; sum[(y + 1) * W1 + x + 1] = sum[y * W1 + x + 1] + row; }
+  }
+  const boxFull = (x, y) => {
+    const x0 = Math.max(0, x - R), y0 = Math.max(0, y - R), x1 = Math.min(w - 1, x + R), y1 = Math.min(h - 1, y + R);
+    const s = sum[(y1 + 1) * W1 + x1 + 1] - sum[y0 * W1 + x1 + 1] - sum[(y1 + 1) * W1 + x0] + sum[y0 * W1 + x0];
+    return s === (x1 - x0 + 1) * (y1 - y0 + 1);
+  };
+  const bg = new Uint8Array(n), stack = [];
+  const seed = i => { if (!bg[i] && cand[i] && boxFull(i % w, (i / w) | 0)) { bg[i] = 1; stack.push(i); } };
+  for (let x = 0; x < w; x++) { seed(x); seed((h - 1) * w + x); }
+  for (let y = 0; y < h; y++) { seed(y * w); seed(y * w + w - 1); }
+  while (stack.length) {
+    const i = stack.pop(), x = i % w;
+    if (x > 0) seed(i - 1);
+    if (x < w - 1) seed(i + 1);
+    if (i >= w) seed(i - w);
+    if (i < n - w) seed(i + w);
+  }
+  // 찾은 배경을 R칸 넓히기 (배경 후보인 픽셀로만)
+  let front = [];
+  for (let i = 0; i < n; i++) if (bg[i]) front.push(i);
+  for (let step = 0; step < R; step++) {
+    const next = [];
+    for (const i of front) {
+      const x = i % w;
+      for (const j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i >= w ? i - w : -1, i < n - w ? i + w : -1]) {
+        if (j >= 0 && !bg[j] && cand[j]) { bg[j] = 1; next.push(j); }
+      }
+    }
+    front = next;
+  }
+  for (let i = 0; i < n; i++) if (bg[i]) p[i * 4 + 3] = 0;
+  // 투명해진 곳과 맞닿은 밝은 테두리는 반투명하게 해서 흰 테두리가 남지 않게
+  for (let i = 0; i < n; i++) {
+    const k = i * 4;
+    if (p[k + 3] === 0) continue;
+    const x = i % w;
+    const edge = (x > 0 && bg[i - 1]) || (x < w - 1 && bg[i + 1]) || (i >= w && bg[i - w]) || (i < n - w && bg[i + w]);
+    if (edge) { const lum = (p[k] + p[k + 1] + p[k + 2]) / 3; if (lum > 225) p[k + 3] = Math.max(60, Math.round(255 * (255 - lum) / 30)); }
+  }
+}
+function processImage(im, cutout, item) {
+  if (CUT_TUNING[item.id] === false) cutout = false;
   const w = im.naturalWidth, h = im.naturalHeight;
   const c = document.createElement("canvas");
   c.width = w; c.height = h;
@@ -1325,33 +1392,7 @@ function processImage(im, cutout) {
       if (x - (w - t) + (y - (h - t)) >= t - 2) { const k = at(x, y); p[k] = p[k + 1] = p[k + 2] = 255; }
     }
   }
-  if (cutout) {
-    const white = k => p[k] > 244 && p[k + 1] > 244 && p[k + 2] > 244;
-    const seen = new Uint8Array(w * h), stack = [];
-    for (let x = 0; x < w; x++) stack.push(x, (h - 1) * w + x);
-    for (let y = 0; y < h; y++) stack.push(y * w, y * w + w - 1);
-    while (stack.length) {
-      const i = stack.pop();
-      if (seen[i]) continue;
-      seen[i] = 1;
-      const k = i * 4;
-      if (!white(k)) continue;
-      p[k + 3] = 0;
-      const x = i % w;
-      if (x > 0) stack.push(i - 1);
-      if (x < w - 1) stack.push(i + 1);
-      if (i >= w) stack.push(i - w);
-      if (i < w * (h - 1)) stack.push(i + w);
-    }
-    // 투명해진 곳과 맞닿은 밝은 테두리는 반투명하게 해서 흰 테두리가 남지 않게
-    for (let i = 0; i < w * h; i++) {
-      const k = i * 4;
-      if (p[k + 3] === 0) continue;
-      const x = i % w;
-      const edge = (x > 0 && p[k - 1] === 0) || (x < w - 1 && p[k + 7] === 0) || (i >= w && p[k - w * 4 + 3] === 0) || (i < w * (h - 1) && p[k + w * 4 + 3] === 0);
-      if (edge) { const lum = (p[k] + p[k + 1] + p[k + 2]) / 3; if (lum > 205) p[k + 3] = Math.max(40, Math.round(255 * (255 - lum) / 50)); }
-    }
-  }
+  if (cutout) cutoutBackground(p, w, h, CUT_TUNING[item.id] || {});
   ctx.putImageData(d, 0, 0);
   return new Promise(res => c.toBlob(b => res(b ? URL.createObjectURL(b) : null), "image/png"));
 }
@@ -1771,6 +1812,10 @@ function render() {
 
 // ── 업데이트 로그 (새 항목은 맨 위에 추가) ──
 const UPDATE_LOG = [
+  { ver: "v1.15", date: "2026-10-29", notes: [
+    "🏠 마이룸 굿즈 배경 지우기 개선: 흰 인형 몸통이 깨지던 문제 수정 (186종 전부 검토)",
+    "배경이 회색인 사진(카니 집게 넥커버)은 둥근 사진 카드로",
+  ] },
   { ver: "v1.14", date: "2026-10-29", notes: [
     "✏️ 프로필 수정: 최애 캐릭터 바꾸기, 계정 비밀번호 바꾸기 (둘러보기 프로필은 닉네임도)",
     "계정으로 로그인한 동안 프로필 메뉴는 '프로필 수정 · 로그아웃'만",
@@ -1943,6 +1988,7 @@ function renderRoom() {
     img.draggable = false;
     img.style.transform = placedTransform(p);
     img.style.opacity = 0;
+    if (CUT_TUNING[item.id] === false) img.classList.add("photo");
     // 흰 배경을 지운 누끼 이미지가 준비되면 보여주고, 실패하면 원본 사진으로
     cleanedUrl(item, true).then(url => {
       img.onload = () => { img.style.opacity = 1; };
@@ -2199,6 +2245,12 @@ async function renderRoomImage() {
     x.rotate((p.rot || 0) * Math.PI / 180);
     x.scale(p.flip ? -1 : 1, 1);
     x.shadowColor = "#00000030"; x.shadowBlur = 5 * k; x.shadowOffsetY = 6 * k;
+    if (CUT_TUNING[item.id] === false) {
+      // 사진 카드 굿즈: 흰 테두리의 둥근 카드로
+      x.fillStyle = "#fff"; x.beginPath(); x.roundRect(-w / 2, -h / 2, w, h, w * 0.14); x.fill();
+      x.shadowColor = "transparent";
+      x.beginPath(); x.roundRect(-w / 2 + 3 * k, -h / 2 + 3 * k, w - 6 * k, h - 6 * k, w * 0.12); x.clip();
+    }
     x.drawImage(im, -w / 2, -h / 2, w, h);
     x.restore();
   }
