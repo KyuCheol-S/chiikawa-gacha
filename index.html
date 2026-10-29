@@ -445,6 +445,10 @@
           <div class="pity-bar"><div id="pityBar"></div></div>
         </div>
         <div class="meter">
+          <div class="meter-label"><span>코인 자동 충전</span><span id="regenInfo"></span></div>
+          <div class="pity-bar"><div id="regenBar" style="background: var(--SSR)"></div></div>
+        </div>
+        <div class="meter">
           <div class="meter-label"><span>도감 수집</span><span id="collectInfo"></span></div>
           <div class="pity-bar"><div id="collectBar" style="background: var(--accent)"></div></div>
         </div>
@@ -754,6 +758,21 @@ add("kani", "N", "🦀", [
   ["4995027178282", "files/4995027178282_1.jpg", "B6 코믹 먼슬리 다이어리 2026 (카니 집게 튀김)"],
 ]);
 
+// ── 헌책방 (카니로 분류) ──
+add("kani", "N", "📚", [
+  ["4901770054186", "files/4901770054186_3.jpg", "봉봉드롭 씰 미니 (헌책방)"],
+  ["4991863509952", "files/4991863509952_1.jpg", "mimi펜 (헌책방)"],
+]);
+add("kani", "R", "📚", [
+  ["4571609414520", "files/4571609414520_1_c86e0c40-8cd9-48a2-87a6-aa2c0163124b.jpg", "ANA 마스코트 (헌책방)"],
+  ["4571609409977", "files/4571609409977_1.jpg", "라멘 부타 점원 마스코트 (헌책방)"],
+]);
+add("kani", "SR", "📚", [
+  ["4582662964655", "files/4582662964655_1.jpg", "치이카와 레스토랑 홀 담당 마스코트 (헌책방)"],
+  ["4582662970434", "files/4582662970434_1.jpg", "초 마지컬 치이카와 차지 마스코트 (헌책방)"],
+  ["4571609397465", "files/4571609397465_1_445d157c-80b4-4f21-83a6-07e4f4490d37.jpg", "치이카와 베이커리 스태프 마스코트 (헌책방)"],
+]);
+
 // ── v1.7 추가 굿즈 ──
 add("basic", "R", "🥐", [
   ["4571609335344", "files/4571609335344_1.jpg", "치이카와 베이커리 코로네 마스코트 (치이카와)"],
@@ -811,6 +830,9 @@ const CHARACTER_GROUPS = [
   ["서브", ["카부토무시", "오데", "고블린", "아노코", "데카츠요", "갑옷 씨", "후구", "무챠우맨", "키메라"]],
 ];
 const CHARACTERS = [...CHARACTER_GROUPS.flatMap(g => g[1]), "기타"];
+// 이름에 이 키워드가 있으면 그 캐릭터로 분류 (헌책방 굿즈는 카니로)
+const CHAR_ALIASES = { 카니: ["카니", "헌책방"] };
+const charIn = (c, text) => (CHAR_ALIASES[c] || [c]).some(k => text.includes(k));
 const TYPE_RULES = [
   [/스티커|씰/, "스티커"], [/손수건/, "손수건"], [/마그넷/, "마그넷"], [/참/, "아크릴 참"], [/샤프|펜|다이어리/, "문구"], [/넥커버/, "패션 소품"],
   [/키홀더/, "키홀더"], [/피규어/, "피규어"], [/키링/, "마스코트 키링"], [/인형/, "인형"], [/마스코트/, "마스코트"],
@@ -831,9 +853,9 @@ for (const it of ITEMS) {
   const src = paren || it.name.replace(/치이카와(랜드| 파크| 베이커리| 레스토랑)/g, "");
   // 한 굿즈에 여러 캐릭터가 나올 수 있어요: "세이렌과 인어", "카니 가장 … (치이카와)"는 둘 다 걸리게 합니다.
   // 카니는 가장(코스튬)·집게처럼 이름 어디에 나와도 카니로 함께 분류합니다.
-  const found = CHARACTERS.filter(c => c !== "기타" && c !== "치이카와" && src.includes(c));
+  const found = CHARACTERS.filter(c => c !== "기타" && c !== "치이카와" && charIn(c, src));
   if (paren ? paren.includes("치이카와") : (!found.length && src.includes("치이카와"))) found.unshift("치이카와");
-  if (it.name.includes("카니") && !found.includes("카니")) found.push("카니");
+  if (charIn("카니", it.name) && !found.includes("카니")) found.push("카니");
   it.chars = found.length ? found : ["기타"];
   it.char = it.chars[0];
   it.type = (TYPE_RULES.find(([re]) => re.test(it.name)) || [, "기타"])[1];
@@ -845,6 +867,8 @@ const RARITIES = ["N", "R", "SR", "SSR"];
 const RAR_COLOR = { N: "#b8c4cc", R: "#6fb7ff", SR: "#c48bff", SSR: "#ffbf3c" };
 const PITY = 50;
 const START_COINS = 20, DAILY_COINS = 10;
+// 코인 자동 충전: 5분마다 1개씩, 20개가 될 때까지 (출석 보상 등으로 20개를 넘으면 그대로 두고 충전만 멈춤)
+const REGEN_MS = 5 * 60 * 1000, REGEN_CAP = 20;
 
 const STORE_KEY = "goods-gacha-v3";
 // v2는 숫자 id(1~25)로 저장했으므로 JAN 코드로 옮겨줍니다.
@@ -852,7 +876,7 @@ const V2_IDS = ["4901770054131","4901770054148","4901770054155","4901770054179",
 let state = load();
 
 function load() {
-  const fresh = { coins: START_COINS, owned: {}, pity: 0, lastDaily: "", total: 0, muted: false, volume: 0.7, theme: "", room: [], wall: "pink", favs: {} };
+  const fresh = { coins: START_COINS, owned: {}, pity: 0, lastDaily: "", total: 0, muted: false, volume: 0.7, theme: "", room: [], wall: "pink", favs: {}, regenAt: 0 };
   try {
     const v3 = localStorage.getItem(STORE_KEY);
     if (v3) return { ...fresh, ...JSON.parse(v3) };
@@ -1410,6 +1434,10 @@ function render() {
 
 // ── 업데이트 로그 (새 항목은 맨 위에 추가) ──
 const UPDATE_LOG = [
+  { ver: "v1.8", date: "2026-10-29", notes: [
+    "🪙 코인 자동 충전: 5분마다 1개씩 20개까지, 페이지를 닫아 둔 동안에도 충전",
+    "📚 헌책방 굿즈를 카니로 분류, 헌책방 굿즈 7종 추가 (총 186종)",
+  ] },
   { ver: "v1.7", date: "2026-10-29", notes: [
     "⭐ 즐겨찾기: 카드 오른쪽 위 별로 등록, 도감 · 마이룸 보관함에서 맨 앞에 정렬, \"즐겨찾기만\" 필터",
     "뽑기 결과 화면에서도 굿즈를 눌러 크게 보기",
@@ -1684,7 +1712,38 @@ function syncGnb() { document.documentElement.style.setProperty("--gnb-h", docum
 addEventListener("resize", syncGnb);
 syncGnb();
 
+// ── 코인 자동 충전 ──
+// 마지막 충전 시각(regenAt)부터 흐른 시간만큼 한꺼번에 채워서, 페이지를 닫아 둔 동안에도 충전됩니다.
+// 코인이 상한 이상이면 시계를 계속 "지금"으로 맞춰 두어, 코인을 쓰는 순간부터 5분을 셉니다.
+function tickRegen() {
+  const now = Date.now();
+  if (state.coins >= REGEN_CAP) {
+    state.regenAt = now;
+  } else {
+    if (!state.regenAt || state.regenAt > now) state.regenAt = now;
+    const n = Math.floor((now - state.regenAt) / REGEN_MS);
+    if (n > 0) {
+      state.coins = Math.min(REGEN_CAP, state.coins + n);
+      state.regenAt = state.coins >= REGEN_CAP ? now : state.regenAt + n * REGEN_MS;
+      save();
+      render();
+      $("coinBox").classList.add("bump");
+      setTimeout(() => $("coinBox").classList.remove("bump"), 300);
+    }
+  }
+  const full = state.coins >= REGEN_CAP;
+  const elapsed = now - state.regenAt;
+  const left = Math.ceil((REGEN_MS - elapsed) / 1000);
+  $("regenInfo").textContent = full
+    ? `가득 찼어요 · 최대 ${REGEN_CAP}개`
+    : `다음 1개까지 ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+  $("regenBar").style.width = full ? "100%" : `${elapsed / REGEN_MS * 100}%`;
+  $("coinBox").title = full ? "코인이 가득 찼어요" : `5분마다 1개씩 ${REGEN_CAP}개까지 자동 충전`;
+}
+
 render();
+tickRegen();
+setInterval(tickRegen, 1000);
 </script>
 </body>
 </html>
