@@ -309,11 +309,20 @@
   .ph-rot { left: -22px; }
   .ph-del { right: -22px; }
 
-  /* 크기 슬라이더 */
-  .size-row { flex-basis: 100%; display: flex; align-items: center; gap: 10px; width: 100%; max-width: 520px; margin: 0 auto; padding: 8px 14px; background: var(--panel); border-radius: 12px; box-shadow: 0 2px 6px var(--shadow); font-size: 13px; }
-  .size-row b { white-space: nowrap; }
-  .size-row input { flex: 1; min-width: 0; accent-color: var(--accent); height: 28px; }
-  .size-row output { width: 40px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  /* 크기 조절 바: 방 밖으로 삐져나와도 보이도록 방 자체는 자르지 않고, 벽·바닥·굿즈 층만 둥글게 자름 */
+  .room { overflow: visible; }
+  .room .wall { border-radius: 20px 20px 0 0; }
+  .room .floor { border-radius: 0 0 20px 20px; overflow: hidden; }
+  #placed { position: absolute; inset: 0; overflow: hidden; border-radius: 20px; }
+  .room.has-sel { margin-bottom: 72px; }
+  .size-ctl { position: absolute; z-index: 5; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 6px 10px 4px; background: var(--panel); border-radius: 14px; box-shadow: 0 3px 10px var(--shadow); touch-action: none; }
+  .size-line { display: flex; align-items: center; gap: 8px; }
+  .size-ctl input { width: 130px; accent-color: var(--accent-dark); margin: 0; }
+  .sz { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--accent-dark); background: var(--panel); color: var(--accent-dark);
+    font: inherit; font-size: 18px; font-weight: 700; line-height: 1; padding: 0; display: grid; place-items: center; cursor: pointer; }
+  .sz:hover { background: var(--accent-dark); color: #fff; }
+  .size-ctl output { font-size: 12px; font-weight: 700; color: var(--accent-dark); font-variant-numeric: tabular-nums; }
   .ph:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 2px; }
   .room-empty { position: absolute; inset: 0; display: grid; place-items: center; color: #9b8a90; font-size: 14px; pointer-events: none; text-align: center; padding: 16px; }
   .room-tools { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 10px 0 4px; }
@@ -489,9 +498,17 @@
       <div class="floor"><div class="rug"></div></div>
       <div class="room-empty" id="roomEmpty">아래 보관함에서 굿즈를 눌러 방에 꺼내 보세요!</div>
       <div id="placed"></div>
+      <!-- 선택한 굿즈 테두리 바로 아래에 붙는 크기 조절 바 -->
+      <div class="size-ctl hidden" id="sizeCtl">
+        <div class="size-line">
+          <button type="button" class="sz" data-d="-2" aria-label="작게">−</button>
+          <input type="range" id="sizeRange" min="6" max="45" step="1" aria-label="크기">
+          <button type="button" class="sz" data-d="2" aria-label="크게">+</button>
+        </div>
+        <output id="sizeVal"></output>
+      </div>
     </div>
     <div class="room-tools hidden" id="roomTools">
-      <label class="size-row" for="sizeRange"><b>크기</b><span aria-hidden="true">🔹</span><input type="range" id="sizeRange" min="6" max="45" step="1"><span aria-hidden="true">🔷</span><output id="sizeVal"></output></label>
       <button data-act="flip">↔️ 좌우 반전</button>
       <button data-act="rotate">⟳ 15° 회전</button>
       <button data-act="unrotate">↺ 회전 초기화</button>
@@ -884,8 +901,8 @@ const RARITIES = ["N", "R", "SR", "SSR"];
 const RAR_COLOR = { N: "#b8c4cc", R: "#6fb7ff", SR: "#c48bff", SSR: "#ffbf3c" };
 const PITY = 50;
 const START_COINS = 20, DAILY_COINS = 10;
-// 코인 자동 충전: 5분마다 1개씩, 20개가 될 때까지 (출석 보상 등으로 20개를 넘으면 그대로 두고 충전만 멈춤)
-const REGEN_MS = 5 * 60 * 1000, REGEN_CAP = 20;
+// 코인 자동 충전: 1분마다 5개씩, 100개가 될 때까지 (출석 보상 등으로 100개를 넘으면 그대로 두고 충전만 멈춤)
+const REGEN_MS = 60 * 1000, REGEN_AMOUNT = 5, REGEN_CAP = 100;
 
 const STORE_KEY = "goods-gacha-v3";
 // v2는 숫자 id(1~25)로 저장했으므로 JAN 코드로 옮겨줍니다.
@@ -1534,6 +1551,10 @@ function render() {
 
 // ── 업데이트 로그 (새 항목은 맨 위에 추가) ──
 const UPDATE_LOG = [
+  { ver: "v1.10", date: "2026-10-29", notes: [
+    "마이룸 크기 조절 바를 선택한 굿즈 바로 아래로 (− 슬라이더 + 와 크기 %)",
+    "🪙 코인 자동 충전: 1분마다 5개씩, 100개까지",
+  ] },
   { ver: "v1.9", date: "2026-10-29", notes: [
     "🏠 마이룸: 굿즈 흰 배경을 지워 불투명하게 배치, 그림자 추가",
     "선택한 굿즈 모서리에 ⟳ 회전 손잡이(드래그 · 누르면 15°)와 빨간 휴지통 버튼",
@@ -1760,6 +1781,7 @@ function startDrag(e, p, el) {
     p.y = Math.min(100, Math.max(8, (ev.clientY - oy - rect.top) / rect.height * 100));
     el.style.left = p.x + "%";
     el.style.top = p.y + "%";
+    syncSize();
   };
   const up = () => {
     el.removeEventListener("pointermove", move);
@@ -1811,22 +1833,33 @@ $("roomEl").addEventListener("pointerdown", e => {
   selected = null;
   renderRoom();
 });
-// 크기 슬라이더: 선택한 굿즈의 폭(방 너비 대비 %)을 바로바로 바꾸고, 손을 떼면 저장
+// 크기 조절 바: 선택한 굿즈 테두리 바로 아래에 따라다니며, 폭(방 너비 대비 %)을 바로바로 바꿈
 function syncSize() {
   const p = state.room.find(x => x.uid === selected);
+  $("sizeCtl").classList.toggle("hidden", !p);
+  // 바가 방 아래로 삐져나올 만큼 아래쪽에 있을 때만 방 밑에 자리를 비워 둠
+  $("roomEl").classList.toggle("has-sel", !!p && p.y > 78);
   if (!p) return;
+  $("sizeCtl").style.left = p.x + "%";
+  $("sizeCtl").style.top = `calc(${p.y}% + 12px)`;
   $("sizeRange").value = p.s;
   $("sizeVal").textContent = `${Math.round(p.s)}%`;
 }
-$("sizeRange").oninput = () => {
+function setSize(s) {
   const p = state.room.find(x => x.uid === selected);
   if (!p) return;
-  p.s = Number($("sizeRange").value);
-  $("sizeVal").textContent = `${p.s}%`;
+  p.s = Math.min(45, Math.max(6, s));
   const el = document.querySelector(".placed.sel");
   if (el) el.style.width = p.s + "%";
-};
+  syncSize();
+}
+$("sizeCtl").addEventListener("pointerdown", e => e.stopPropagation());
+$("sizeRange").oninput = () => setSize(Number($("sizeRange").value));
 $("sizeRange").onchange = () => save();
+document.querySelectorAll("#sizeCtl .sz").forEach(b => b.onclick = () => {
+  const p = state.room.find(x => x.uid === selected);
+  if (p) { setSize(p.s + Number(b.dataset.d)); save(); }
+});
 $("roomTools").onclick = e => {
   const act = e.target.closest("button")?.dataset.act;
   const p = state.room.find(x => x.uid === selected);
@@ -1910,7 +1943,7 @@ function tickRegen() {
     if (!state.regenAt || state.regenAt > now) state.regenAt = now;
     const n = Math.floor((now - state.regenAt) / REGEN_MS);
     if (n > 0) {
-      state.coins = Math.min(REGEN_CAP, state.coins + n);
+      state.coins = Math.min(REGEN_CAP, state.coins + n * REGEN_AMOUNT);
       state.regenAt = state.coins >= REGEN_CAP ? now : state.regenAt + n * REGEN_MS;
       save();
       render();
@@ -1923,9 +1956,9 @@ function tickRegen() {
   const left = Math.ceil((REGEN_MS - elapsed) / 1000);
   $("regenInfo").textContent = full
     ? `가득 찼어요 · 최대 ${REGEN_CAP}개`
-    : `다음 1개까지 ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+    : `다음 ${REGEN_AMOUNT}개까지 ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
   $("regenBar").style.width = full ? "100%" : `${elapsed / REGEN_MS * 100}%`;
-  $("coinBox").title = full ? "코인이 가득 찼어요" : `5분마다 1개씩 ${REGEN_CAP}개까지 자동 충전`;
+  $("coinBox").title = full ? "코인이 가득 찼어요" : `${REGEN_MS / 60000}분마다 ${REGEN_AMOUNT}개씩 ${REGEN_CAP}개까지 자동 충전`;
 }
 
 render();
