@@ -333,8 +333,19 @@
   .auth-tabs button.on { background: var(--panel); color: var(--ink); font-weight: 700; box-shadow: 0 1px 4px var(--shadow); }
   .onb-msg { margin: -2px 0 0 !important; color: #e5484d; font-size: 13px; font-weight: 700; }
   .onb-msg:empty { display: none; }
-  #onbPw, #onbName, .transfer-sheet textarea { width: 100%; border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; background: var(--bg); color: var(--ink); }
-  #onbPw:focus, #onbName:focus, .transfer-sheet textarea:focus { outline: none; border-color: var(--accent); }
+  .pp-head { display: flex; align-items: center; gap: 10px; padding: 6px 8px; }
+  .pp-emoji { font-size: 26px; }
+  .pp-head b { display: block; font-size: 15px; }
+  .pp-head small { color: var(--muted); font-size: 12px; }
+  .pe-sheet { display: flex; flex-direction: column; gap: 8px; }
+  .pe-sheet h2 { margin: 0 0 4px; }
+  .pe-field { font-size: 13px; font-weight: 700; margin-top: 6px; }
+  .pe-field small { font-weight: 400; color: var(--muted); }
+  #pePwBox { display: flex; flex-direction: column; gap: 8px; }
+  .pe-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+  #peName:disabled { opacity: .6; }
+  #peName, #peOldPw, #peNewPw, #onbPw, #onbName, .transfer-sheet textarea { width: 100%; border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; background: var(--bg); color: var(--ink); }
+  #peName:focus, #peOldPw:focus, #peNewPw:focus, #onbPw:focus, #onbName:focus, .transfer-sheet textarea:focus { outline: none; border-color: var(--accent); }
   .onb-hint { margin-top: -4px !important; }
   .char-pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .char-pick button { border: 2px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 14px; padding: 10px 4px; font: inherit; font-size: 13px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -662,6 +673,28 @@
       </ul>
       <button class="btn" id="onbStart">시작하기</button>
     </section>
+  </div>
+</div>
+
+<!-- 프로필 수정 -->
+<div class="modal hidden" id="profileEdit">
+  <div class="sheet pe-sheet">
+    <h2>✏️ 프로필 수정</h2>
+    <label class="pe-field" for="peName">닉네임</label>
+    <input id="peName" maxlength="12" autocomplete="nickname">
+    <p class="info" id="peNameNote"></p>
+    <span class="pe-field">최애 캐릭터</span>
+    <div class="char-pick" id="peChars"></div>
+    <div id="pePwBox">
+      <span class="pe-field">비밀번호 바꾸기 <small>(바꿀 때만 적어 주세요)</small></span>
+      <input id="peOldPw" type="password" placeholder="지금 비밀번호" autocomplete="current-password">
+      <input id="peNewPw" type="password" placeholder="새 비밀번호 (6자 이상)" autocomplete="new-password">
+    </div>
+    <p class="onb-msg" id="peMsg" role="alert"></p>
+    <div class="pe-actions">
+      <button class="btn ghost" id="peClose">닫기</button>
+      <button class="btn" id="peSave">저장</button>
+    </div>
   </div>
 </div>
 
@@ -1738,6 +1771,10 @@ function render() {
 
 // ── 업데이트 로그 (새 항목은 맨 위에 추가) ──
 const UPDATE_LOG = [
+  { ver: "v1.14", date: "2026-10-29", notes: [
+    "✏️ 프로필 수정: 최애 캐릭터 바꾸기, 계정 비밀번호 바꾸기 (둘러보기 프로필은 닉네임도)",
+    "계정으로 로그인한 동안 프로필 메뉴는 '프로필 수정 · 로그아웃'만",
+  ] },
   { ver: "v1.13", date: "2026-10-29", notes: [
     "🔑 회원가입 · 로그인: 닉네임과 비밀번호로 가입하면 어느 기기에서든 로그인해서 이어서",
     "기록은 계정에 자동 저장 (GitHub 사이트에서 동작)",
@@ -2303,6 +2340,23 @@ function renderProfile() {
   $("profileName").textContent = p ? ` ${p.name}` : "";
   $("profileBtn").title = p ? `${p.name} 님의 프로필` : "프로필";
   const pop = $("profilePop");
+  const close = fn => () => { $("profilePop").classList.add("hidden"); fn(); };
+  const action = (label, fn, cls) => { const b = document.createElement("button"); b.textContent = label; if (cls) b.className = cls; b.onclick = fn; pop.appendChild(b); return b; };
+  // 계정으로 로그인한 동안에는 그 사람만의 메뉴: 프로필 수정과 로그아웃만
+  if (p?.uid) {
+    pop.innerHTML = "";
+    const head = document.createElement("div");
+    head.className = "pp-head";
+    head.innerHTML = `<span class="pp-emoji">${CHAR_EMOJI[p.char] || "🙂"}</span><div><b></b><small>☁️ 계정에 자동 저장 중</small></div>`;
+    head.querySelector("b").textContent = `${p.name} 님`;
+    pop.appendChild(head);
+    pop.appendChild(document.createElement("hr"));
+    action("✏️ 프로필 수정", close(openProfileEdit));
+    action("🚪 로그아웃", () => logout(), "danger");
+    const greet = document.querySelector(".control-head p");
+    if (greet) greet.textContent = `${p.name} 님, 코인 1개로 1회, 10개로 10연차를 뽑아요.`;
+    return;
+  }
   pop.innerHTML = "<h3>프로필 (이 기기)</h3>";
   for (const q of profiles.list) {
     const b = document.createElement("button");
@@ -2313,14 +2367,12 @@ function renderProfile() {
     if (q.id !== profiles.active) b.onclick = () => switchProfile(q.id);
     pop.appendChild(b);
   }
-  const close = fn => () => { $("profilePop").classList.add("hidden"); fn(); };
-  const action = (label, fn, cls) => { const b = document.createElement("button"); b.textContent = label; if (cls) b.className = cls; b.onclick = fn; pop.appendChild(b); return b; };
+  if (p) action("✏️ 프로필 수정", close(openProfileEdit));
   action("＋ 둘러보기용 새 프로필", close(() => openOnboard(true, "guest")));
   pop.appendChild(document.createElement("hr"));
   if (cloud) {
-    if (p && !p.uid) action("☁️ 이 기록으로 회원가입", close(() => openOnboard(true, "signup", { link: true })));
+    if (p) action("☁️ 이 기록으로 회원가입", close(() => openOnboard(true, "signup", { link: true })));
     action("🔑 계정으로 로그인", close(() => openOnboard(true, "login")));
-    if (p?.uid) action("🚪 로그아웃", () => logout());
   } else {
     action("📦 진행 상황 옮기기", close(openTransfer));
   }
@@ -2455,6 +2507,68 @@ function watchAuth() {
     }
   });
 }
+
+// ── 프로필 수정 ── 최애 캐릭터는 언제든, 닉네임은 둘러보기 프로필만(계정 닉네임은 로그인 아이디라 고정),
+// 비밀번호는 계정 프로필에서 지금 비밀번호로 한 번 더 확인한 뒤 바꿈
+let peChar = "치이카와";
+const peMsg = (t, ok) => { $("peMsg").textContent = t || ""; $("peMsg").style.color = ok ? "var(--accent-dark)" : ""; };
+function openProfileEdit() {
+  const p = me();
+  if (!p) return;
+  peChar = p.char;
+  $("peName").value = p.name;
+  $("peName").disabled = !!p.uid;
+  $("peNameNote").textContent = p.uid ? "계정 닉네임은 로그인할 때 쓰는 아이디라 바꿀 수 없어요." : "";
+  $("peNameNote").hidden = !p.uid;
+  $("pePwBox").hidden = !(p.uid && cloud);
+  $("peOldPw").value = $("peNewPw").value = "";
+  const pick = $("peChars");
+  pick.innerHTML = "";
+  for (const c of MAIN_CHARS) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = `<span>${CHAR_EMOJI[c]}</span>${c}`;
+    b.classList.toggle("on", c === peChar);
+    b.onclick = () => { peChar = c; pick.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); };
+    pick.appendChild(b);
+  }
+  peMsg("");
+  $("profileEdit").classList.remove("hidden");
+}
+$("peSave").onclick = async () => {
+  const p = me();
+  if (!p) return;
+  const name = $("peName").value.trim().slice(0, 12);
+  if (!p.uid && !name) { peMsg("닉네임을 적어 주세요."); return; }
+  const oldPw = $("peOldPw").value, newPw = $("peNewPw").value;
+  const changePw = p.uid && cloud && (oldPw || newPw);
+  if (changePw && newPw.length < 6) { peMsg("새 비밀번호는 6자 이상이에요."); return; }
+  if (changePw && !oldPw) { peMsg("지금 비밀번호를 적어 주세요."); return; }
+  $("peSave").disabled = true;
+  try {
+    if (changePw) {
+      const user = cloud.auth.currentUser;
+      if (!user) throw { code: "auth/no-user" };
+      await user.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(user.email, oldPw));
+      await user.updatePassword(newPw);
+    }
+    if (!p.uid) p.name = name;
+    p.char = peChar;
+    saveProfiles();
+    save();
+    if (p.uid) await writeCloud();
+    render();
+    peMsg(changePw ? "저장했어요. 다음 로그인부터 새 비밀번호를 쓰세요." : "저장했어요.", true);
+    $("peOldPw").value = $("peNewPw").value = "";
+    if (!changePw) setTimeout(() => $("profileEdit").classList.add("hidden"), 700);
+  } catch (e) {
+    peMsg(e?.code === "auth/no-user" ? "로그인이 풀렸어요. 다시 로그인한 뒤 바꿔 주세요." : authError(e).replace("닉네임이나 비밀번호가", "지금 비밀번호가"));
+  } finally {
+    $("peSave").disabled = false;
+  }
+};
+$("peClose").onclick = () => $("profileEdit").classList.add("hidden");
+$("profileEdit").onclick = e => { if (e.target.id === "profileEdit") $("profileEdit").classList.add("hidden"); };
 
 // 온보딩: (회원가입 · 로그인 · 둘러보기) → 최애 → 사용법
 // 처음 접속(프로필 없음)이면 자동으로 열리고, 프로필 메뉴에서 새 프로필·로그인·회원가입으로도 열림
