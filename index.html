@@ -299,6 +299,8 @@
   .placed img { display: block; width: 100%; pointer-events: none; -webkit-user-drag: none; filter: drop-shadow(0 6px 5px #00000030); transition: opacity .2s; }
   /* 누끼를 따지 않는 굿즈는 둥근 사진 카드처럼 */
   .placed img.photo { border-radius: 14%; border: 3px solid #fff; background: #fff; }
+  /* 하나를 선택한 동안 다른 굿즈는 눌리지 않고(클릭이 통과) 살짝 흐려짐 */
+  .room.locked .placed:not(.sel) { pointer-events: none; opacity: .55; transition: opacity .2s; }
   .placed.sel { outline: 2px dashed var(--accent-dark); outline-offset: 3px; border-radius: 6px; }
   /* 선택한 굿즈의 손잡이: 점선 바깥 모서리 */
   .ph { position: absolute; top: -20px; width: 30px; height: 30px; border-radius: 50%; border: 0; padding: 0; display: none; place-items: center;
@@ -335,6 +337,25 @@
   .auth-tabs button.on { background: var(--panel); color: var(--ink); font-weight: 700; box-shadow: 0 1px 4px var(--shadow); }
   .onb-msg { margin: -2px 0 0 !important; color: #e5484d; font-size: 13px; font-weight: 700; }
   .onb-msg:empty { display: none; }
+  /* 피드백 · 관리자 */
+  .fb-sheet { display: flex; flex-direction: column; gap: 10px; }
+  .fb-sheet h2, .fb-sheet p { margin: 0; }
+  .fb-cats { display: flex; flex-wrap: wrap; gap: 6px; }
+  #fbText { width: 100%; border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; background: var(--bg); color: var(--ink); resize: vertical; }
+  #fbText:focus { outline: none; border-color: var(--accent); }
+  .fb-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .admin-sheet { max-width: 680px; display: flex; flex-direction: column; gap: 8px; }
+  .admin-head { display: flex; justify-content: space-between; align-items: center; }
+  .admin-head h2 { margin: 0; }
+  .admin-list { display: flex; flex-direction: column; gap: 8px; }
+  .fb-card { background: var(--bg); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .fb-card.done { opacity: .6; }
+  .fb-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .fb-top b { color: var(--ink); font-size: 13px; }
+  .fb-tag { font-size: 11px; font-weight: 800; color: #fff; background: var(--accent-dark); border-radius: 6px; padding: 1px 7px; }
+  .fb-text { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.6; }
+  .fb-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  footer #openFeedback { font-weight: 700; }
   .pp-head { display: flex; align-items: center; gap: 10px; padding: 6px 8px; }
   .pp-emoji { font-size: 26px; }
   .pp-head b { display: block; font-size: 15px; }
@@ -592,7 +613,7 @@
       <button data-act="zoom">🔍 크게 보기</button>
       <button data-act="remove">📦 보관함에 넣기</button>
     </div>
-    <p class="info">굿즈를 드래그해서 옮기고, 눌러서 선택하면 크기·방향을 바꿀 수 있어요.</p>
+    <p class="info">굿즈를 누르면 선택돼요. 선택한 굿즈만 옮기고 크기·방향을 바꿀 수 있고, 한 번 더 누르면 선택이 풀려요.</p>
     <h3 class="tray-title">보관함 <span id="trayCount"></span></h3>
     <div id="trayFilter"></div>
     <div class="tray" id="tray"></div>
@@ -603,6 +624,7 @@
   「치이카와」의 모든 캐릭터와 굿즈 이미지의 저작권은 원작자 <b>나가노(ナガノ)</b>와 ⓒnagano / chiikawa committee에 있습니다.<br>
   공식과 무관한 <b>비영리 취미 팬 게임</b>으로, 어떠한 영리 목적도 없습니다. 굿즈 이미지 출처: ちいかわマーケット(chiikawamarket.jp)
   · <button id="openCopyright">저작권 안내 자세히</button>
+  · <button id="openFeedback">💌 피드백 보내기</button>
 </footer>
 
 <!-- 개봉 연출 -->
@@ -675,6 +697,40 @@
       </ul>
       <button class="btn" id="onbStart">시작하기</button>
     </section>
+  </div>
+</div>
+
+<!-- 피드백 보내기 -->
+<div class="modal hidden" id="feedback">
+  <div class="sheet fb-sheet">
+    <h2>💌 피드백 보내기</h2>
+    <p class="info">버그, 갖고 싶은 굿즈, 바라는 기능 무엇이든 좋아요. 제작자만 읽어요.</p>
+    <div class="fb-cats" id="fbCats" role="radiogroup" aria-label="분류"></div>
+    <textarea id="fbText" rows="5" maxlength="1000" placeholder="내용을 적어 주세요 (최대 1000자)" aria-label="피드백 내용"></textarea>
+    <div class="fb-meta"><span id="fbFrom"></span><span id="fbCount">0 / 1000</span></div>
+    <p class="onb-msg" id="fbMsg" role="alert"></p>
+    <div class="pe-actions">
+      <button class="btn ghost" id="fbClose">닫기</button>
+      <button class="btn" id="fbSend">보내기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 관리자: 피드백 관리 -->
+<div class="modal hidden" id="admin">
+  <div class="sheet admin-sheet">
+    <div class="admin-head">
+      <h2>🛠 피드백 관리</h2>
+      <button class="icon-btn" id="adminClose" aria-label="닫기">✕</button>
+    </div>
+    <div class="filters" id="adminTabs">
+      <button class="chip on" data-st="new">새 피드백</button>
+      <button class="chip" data-st="done">확인함</button>
+      <button class="chip" data-st="all">전체</button>
+      <button class="chip" id="adminReload">↻ 새로고침</button>
+    </div>
+    <p class="info" id="adminInfo"></p>
+    <div class="admin-list" id="adminList"></div>
   </div>
 </div>
 
@@ -1812,6 +1868,10 @@ function render() {
 
 // ── 업데이트 로그 (새 항목은 맨 위에 추가) ──
 const UPDATE_LOG = [
+  { ver: "v1.16", date: "2026-10-29", notes: [
+    "💌 피드백 보내기: 페이지 아래나 프로필 메뉴에서 버그 · 아이디어 · 칭찬을 제작자에게",
+    "🏠 마이룸: 굿즈를 선택하면 그 굿즈만 조작돼요. 다른 굿즈는 눌리지 않고, 같은 굿즈를 한 번 더 누르면 선택 해제",
+  ] },
   { ver: "v1.15", date: "2026-10-29", notes: [
     "🏠 마이룸 굿즈 배경 지우기 개선: 흰 인형 몸통이 깨지던 문제 수정 (186종 전부 검토)",
     "배경이 회색인 사진(카니 집게 넥커버)은 둥근 사진 카드로",
@@ -2021,7 +2081,9 @@ function renderRoom() {
     layer.appendChild(el);
   }
   $("roomEmpty").classList.toggle("hidden", state.room.length > 0);
-  $("roomTools").classList.toggle("hidden", !state.room.some(p => p.uid === selected));
+  if (!state.room.some(p => p.uid === selected)) selected = null;
+  $("roomTools").classList.toggle("hidden", !selected);
+  room.classList.toggle("locked", !!selected);
   syncSize();
 
   const tray = $("tray");
@@ -2047,21 +2109,29 @@ function renderRoom() {
   $("trayCount").textContent = owned.length ? `(꺼낼 수 있는 굿즈 ${left}개)` : "— 가챠에서 굿즈를 뽑아 오세요!";
 }
 
+// 선택 규칙: 하나를 고르면 그 굿즈만 조작되고(다른 굿즈는 눌리지 않고 흐려짐),
+// 끌지 않고 같은 굿즈를 한 번 더 누르면 선택이 풀려요. 바깥 빈 곳을 눌러도 선택은 유지돼요.
 function startDrag(e, p, el) {
   e.preventDefault();
   e.stopPropagation();
+  if (selected && selected !== p.uid) return; // 다른 굿즈가 선택된 동안에는 무시 (CSS로도 클릭이 통과되게 막아 둠)
+  const wasSelected = selected === p.uid;
   const rect = $("roomEl").getBoundingClientRect();
   const ox = e.clientX - (rect.left + p.x / 100 * rect.width);
   const oy = e.clientY - (rect.top + p.y / 100 * rect.height);
+  const sx = e.clientX, sy = e.clientY;
+  let moved = false;
   selected = p.uid;
-  p.z = topZ() + 1;
-  el.style.zIndex = p.z;
+  if (!wasSelected) { p.z = topZ() + 1; el.style.zIndex = p.z; }
   document.querySelectorAll(".placed.sel").forEach(x => x.classList.remove("sel"));
   el.classList.add("sel");
+  $("roomEl").classList.add("locked");
   $("roomTools").classList.remove("hidden");
   syncSize();
   el.setPointerCapture(e.pointerId);
   const move = ev => {
+    if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 5) return;
+    moved = true;
     p.x = Math.min(100, Math.max(0, (ev.clientX - ox - rect.left) / rect.width * 100));
     p.y = Math.min(100, Math.max(8, (ev.clientY - oy - rect.top) / rect.height * 100));
     el.style.left = p.x + "%";
@@ -2072,6 +2142,7 @@ function startDrag(e, p, el) {
     el.removeEventListener("pointermove", move);
     el.removeEventListener("pointerup", up);
     el.removeEventListener("pointercancel", up);
+    if (wasSelected && !moved) { selected = null; renderRoom(); }
     save();
   };
   el.addEventListener("pointermove", move);
@@ -2113,10 +2184,9 @@ function startRotate(e, p, el, img) {
   h.addEventListener("pointerup", up);
   h.addEventListener("pointercancel", up);
 }
-$("roomEl").addEventListener("pointerdown", e => {
-  if (e.target.closest(".placed")) return;
-  selected = null;
-  renderRoom();
+// Esc 키로도 선택 해제 (키보드 사용자용)
+addEventListener("keydown", e => {
+  if (e.key === "Escape" && selected && !$("room").classList.contains("hidden")) { selected = null; renderRoom(); }
 });
 // 크기 조절 바: 선택한 굿즈 테두리 바로 아래에 따라다니며, 폭(방 너비 대비 %)을 바로바로 바꿈
 function syncSize() {
@@ -2404,6 +2474,8 @@ function renderProfile() {
     pop.appendChild(head);
     pop.appendChild(document.createElement("hr"));
     action("✏️ 프로필 수정", close(openProfileEdit));
+    action("💌 피드백 보내기", close(openFeedback));
+    if (isAdmin) action("🛠 피드백 관리 (관리자)", close(openAdmin));
     action("🚪 로그아웃", () => logout(), "danger");
     const greet = document.querySelector(".control-head p");
     if (greet) greet.textContent = `${p.name} 님, 코인 1개로 1회, 10개로 10연차를 뽑아요.`;
@@ -2420,6 +2492,7 @@ function renderProfile() {
     pop.appendChild(b);
   }
   if (p) action("✏️ 프로필 수정", close(openProfileEdit));
+  action("💌 피드백 보내기", close(openFeedback));
   action("＋ 둘러보기용 새 프로필", close(() => openOnboard(true, "guest")));
   pop.appendChild(document.createElement("hr"));
   if (cloud) {
@@ -2548,6 +2621,7 @@ function watchAuth() {
     const p = me();
     if (!p?.uid) return;
     if (!user || user.uid !== p.uid) { openOnboard(true, "login", { name: p.name }); return; }
+    checkAdmin();
     const snap = await userDoc(p.uid).get().catch(() => null);
     const d = snap?.exists ? snap.data() : null;
     if (d && (d.savedAt || 0) > (state.savedAt || 0)) {
@@ -2621,6 +2695,126 @@ $("peSave").onclick = async () => {
 };
 $("peClose").onclick = () => $("profileEdit").classList.add("hidden");
 $("profileEdit").onclick = e => { if (e.target.id === "profileEdit") $("profileEdit").classList.add("hidden"); };
+
+// ── 피드백 ──
+// Firestore feedback 컬렉션에 쌓이고, 읽기·정리는 admins/{uid} 문서가 있는 관리자 계정만 할 수 있어요(규칙으로 강제).
+// 로그인하지 않은 둘러보기 사용자도 보낼 수 있고, 계정 사용자는 uid가 함께 남아요.
+const FB_CATS = ["버그", "아이디어", "칭찬", "기타"];
+let fbCat = "아이디어";
+const fbMsg = (t, ok) => { $("fbMsg").textContent = t || ""; $("fbMsg").style.color = ok ? "var(--accent-dark)" : ""; };
+function openFeedback() {
+  const cats = $("fbCats");
+  cats.innerHTML = "";
+  for (const c of FB_CATS) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip" + (c === fbCat ? " on" : "");
+    b.textContent = c;
+    b.setAttribute("role", "radio");
+    b.setAttribute("aria-checked", c === fbCat);
+    b.onclick = () => { fbCat = c; cats.querySelectorAll("button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); }); };
+    cats.appendChild(b);
+  }
+  const p = me();
+  $("fbFrom").textContent = `보내는 사람: ${p ? p.name : "익명"}`;
+  $("fbSend").disabled = !cloud;
+  fbMsg(cloud ? "" : "이 화면에서는 보낼 수 없어요. GitHub 사이트(kyucheol-s.github.io/chiikawa-gacha)에서 보내 주세요.");
+  $("feedback").classList.remove("hidden");
+  setTimeout(() => $("fbText").focus(), 50);
+}
+$("openFeedback").onclick = openFeedback;
+$("fbText").oninput = () => { $("fbCount").textContent = `${$("fbText").value.length} / 1000`; };
+$("fbClose").onclick = () => $("feedback").classList.add("hidden");
+$("feedback").onclick = e => { if (e.target.id === "feedback") $("feedback").classList.add("hidden"); };
+$("fbSend").onclick = async () => {
+  const text = $("fbText").value.trim();
+  if (!text) { fbMsg("내용을 적어 주세요."); return; }
+  const p = me(), uid = cloud?.auth.currentUser?.uid || null;
+  $("fbSend").disabled = true;
+  try {
+    await cloud.db.collection("feedback").add({
+      name: (p?.name || "익명").slice(0, 20), category: fbCat, text: text.slice(0, 1000), status: "new",
+      uid: p?.uid && p.uid === uid ? uid : null, page: location.host.slice(0, 60),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    $("fbText").value = "";
+    $("fbCount").textContent = "0 / 1000";
+    fbMsg("보냈어요. 소중한 의견 고마워요! 💕", true);
+    setTimeout(() => { $("feedback").classList.add("hidden"); fbMsg(""); }, 1500);
+  } catch {
+    fbMsg("보내지 못했어요. 잠시 뒤 다시 해 주세요.");
+  } finally {
+    $("fbSend").disabled = false;
+  }
+};
+
+// 관리자 화면: 새 피드백 / 확인함 / 전체, 확인함 표시, 삭제(두 번 눌러 확인)
+var isAdmin = false;
+let adminFilter = "new", adminItems = [];
+async function checkAdmin() {
+  const uid = cloud?.auth.currentUser?.uid;
+  isAdmin = uid ? await cloud.db.collection("admins").doc(uid).get().then(s => s.exists).catch(() => false) : false;
+  render();
+}
+async function loadAdmin() {
+  $("adminInfo").textContent = "불러오는 중…";
+  try {
+    const snap = await cloud.db.collection("feedback").orderBy("createdAt", "desc").limit(200).get();
+    adminItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAdmin();
+  } catch {
+    $("adminInfo").textContent = "불러오지 못했어요. 관리자 계정으로 로그인했는지 확인해 주세요.";
+  }
+}
+function renderAdmin() {
+  const list = $("adminList");
+  list.innerHTML = "";
+  const shown = adminItems.filter(f => adminFilter === "all" || (adminFilter === "new" ? f.status !== "done" : f.status === "done"));
+  const fresh = adminItems.filter(f => f.status !== "done").length;
+  $("adminInfo").textContent = `새 피드백 ${fresh}개 · 전체 ${adminItems.length}개`;
+  if (!shown.length) list.innerHTML = `<p class="info">여기에는 아직 피드백이 없어요.</p>`;
+  for (const f of shown) {
+    const card = document.createElement("div");
+    card.className = "fb-card" + (f.status === "done" ? " done" : "");
+    const when = f.createdAt?.toDate ? f.createdAt.toDate().toLocaleString("ko-KR") : "";
+    card.innerHTML = `<div class="fb-top"><span class="fb-tag"></span><b></b><span></span><span></span></div><div class="fb-text"></div><div class="fb-actions"></div>`;
+    card.querySelector(".fb-tag").textContent = f.category || "기타";
+    card.querySelector("b").textContent = f.name || "익명";
+    card.querySelectorAll(".fb-top span")[1].textContent = f.uid ? "☁️ 계정" : "둘러보기";
+    card.querySelectorAll(".fb-top span")[2].textContent = when;
+    card.querySelector(".fb-text").textContent = f.text || "";
+    const acts = card.querySelector(".fb-actions");
+    const toggle = document.createElement("button");
+    toggle.className = "chip";
+    toggle.textContent = f.status === "done" ? "↩ 새 피드백으로" : "✓ 확인함";
+    toggle.onclick = async () => {
+      const status = f.status === "done" ? "new" : "done";
+      await cloud.db.collection("feedback").doc(f.id).update({ status }).then(() => { f.status = status; renderAdmin(); }).catch(() => { $("adminInfo").textContent = "바꾸지 못했어요."; });
+    };
+    const del = document.createElement("button");
+    del.className = "chip";
+    del.textContent = "🗑 삭제";
+    let armed = null;
+    del.onclick = async () => {
+      if (!armed) { del.textContent = "한 번 더 누르면 삭제"; armed = setTimeout(() => { armed = null; del.textContent = "🗑 삭제"; }, 3000); return; }
+      await cloud.db.collection("feedback").doc(f.id).delete().then(() => { adminItems = adminItems.filter(x => x !== f); renderAdmin(); }).catch(() => { $("adminInfo").textContent = "삭제하지 못했어요."; });
+    };
+    acts.append(toggle, del);
+    list.appendChild(card);
+  }
+}
+function openAdmin() {
+  $("admin").classList.remove("hidden");
+  loadAdmin();
+}
+document.querySelectorAll("#adminTabs [data-st]").forEach(b => b.onclick = () => {
+  adminFilter = b.dataset.st;
+  document.querySelectorAll("#adminTabs [data-st]").forEach(x => x.classList.toggle("on", x === b));
+  renderAdmin();
+});
+$("adminReload").onclick = loadAdmin;
+$("adminClose").onclick = () => $("admin").classList.add("hidden");
+$("admin").onclick = e => { if (e.target.id === "admin") $("admin").classList.add("hidden"); };
 
 // 온보딩: (회원가입 · 로그인 · 둘러보기) → 최애 → 사용법
 // 처음 접속(프로필 없음)이면 자동으로 열리고, 프로필 메뉴에서 새 프로필·로그인·회원가입으로도 열림
