@@ -309,6 +309,56 @@
   .ph-rot { left: -22px; }
   .ph-del { right: -22px; }
 
+  /* 프로필 메뉴 */
+  .profile-pop { width: min(280px, calc(100vw - 32px)); padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .profile-pop h3 { margin: 4px 6px 6px; font-size: 13px; color: var(--muted); }
+  .profile-pop button { border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 14px; text-align: left; padding: 8px 10px; border-radius: 10px; cursor: pointer; display: flex; gap: 8px; align-items: center; }
+  .profile-pop button:hover { background: var(--bg); }
+  .profile-pop button.cur { background: var(--bg); font-weight: 700; }
+  .profile-pop button.cur::after { content: "✓"; margin-left: auto; color: var(--accent-dark); }
+  .profile-pop hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100%; }
+  .profile-pop .danger { color: #e5484d; }
+
+  /* 온보딩 */
+  .onb-sheet { text-align: center; }
+  .onb-sheet h2 { margin: 6px 0 8px; font-size: 22px; text-wrap: balance; }
+  .onb-sheet p { margin: 0 0 12px; }
+  .onb-step { display: flex; flex-direction: column; gap: 10px; }
+  .onb-step.hidden { display: none; }
+  .onb-dots { display: flex; justify-content: center; gap: 6px; }
+  .onb-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+  .onb-dots i.on { background: var(--accent); }
+  #onbName, .transfer-sheet textarea { width: 100%; border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; background: var(--bg); color: var(--ink); }
+  #onbName:focus, .transfer-sheet textarea:focus { outline: none; border-color: var(--accent); }
+  .onb-hint { margin-top: -4px !important; }
+  .char-pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .char-pick button { border: 2px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 14px; padding: 10px 4px; font: inherit; font-size: 13px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .char-pick button span { font-size: 24px; }
+  .char-pick button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--panel)); font-weight: 700; }
+  .onb-guide { text-align: left; margin: 0 0 6px; padding-left: 0; list-style: none; display: grid; gap: 8px; font-size: 14px; }
+  .onb-guide li { background: var(--bg); border-radius: 12px; padding: 10px 12px; }
+  .onb-guide b { display: block; margin-bottom: 2px; }
+  .link-btn { border: 0; background: none; color: var(--accent-dark); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; }
+  .transfer-sheet { display: flex; flex-direction: column; gap: 10px; }
+  .transfer-sheet h2 { margin: 0; }
+  .transfer-sheet h3 { margin: 6px 0 4px; font-size: 14px; }
+  .transfer-sheet textarea { font-size: 12px; resize: vertical; word-break: break-all; }
+  #transferMsg:empty { display: none; }
+
+  /* 마이룸 공유 창 */
+  .share-sheet { display: flex; flex-direction: column; gap: 12px; }
+  .share-sheet h2 { margin: 0; }
+  .share-preview { position: relative; flex-shrink: 0; border-radius: 12px; overflow: hidden; background: var(--bg); min-height: 120px; display: grid; place-items: center; }
+  .share-preview img { display: block; max-width: 100%; max-height: 48vh; width: auto; height: auto; }
+  .share-preview p { position: absolute; margin: 0; color: var(--muted); font-size: 13px; }
+  .share-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .share-sns { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .share-label { flex-basis: 100%; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .share-sns a { text-decoration: none; }
+  .share-link { display: flex; gap: 6px; }
+  .share-link input { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 12px; }
+  #shareMsg:empty { display: none; }
+
   /* 크기 조절 바: 방 밖으로 삐져나와도 보이도록 방 자체는 자르지 않고, 벽·바닥·굿즈 층만 둥글게 자름 */
   .room { overflow: visible; }
   .room .wall { border-radius: 20px 20px 0 0; }
@@ -389,7 +439,8 @@
     .gnb .icon-btn { width: 32px; height: 32px; font-size: 14px; }
     .gnb .coins { padding: 5px 10px; font-size: 13px; }
     .gnb #logBtn { padding: 7px 9px; }
-    .gnb #logBtn .lbl { display: none; }
+    .gnb #logBtn .lbl, .gnb #profileBtn .lbl { display: none; }
+    .gnb #profileBtn { padding: 7px 9px; }
   }
   @media (max-width: 359px) { .machine { --mz: .85; } }
   @media (min-width: 390px) and (max-width: 767px) { .machine { --mz: 1.1; } }
@@ -425,6 +476,10 @@
     <button data-tab="room">마이룸</button>
   </nav>
   <div class="hud">
+    <div class="pop-wrap">
+      <button class="text-btn" id="profileBtn" aria-label="내 프로필"><span id="profileEmoji">🙂</span><span class="lbl" id="profileName"></span></button>
+      <div class="pop profile-pop hidden" id="profilePop"></div>
+    </div>
     <div class="pop-wrap">
       <button class="text-btn" id="logBtn" aria-label="업데이트 로그">📢<span class="lbl"> 업데이트</span><span class="dot hidden" id="logDot"></span></button>
       <div class="pop log-pop hidden" id="logPop"></div>
@@ -492,6 +547,7 @@
     <div class="room-bar">
       <span>벽지</span><span id="wallPicker" style="display:flex;gap:6px"></span>
       <button class="btn ghost small" id="roomClear">모두 보관함으로</button>
+      <button class="btn small" id="roomShare">📤 공유하기</button>
     </div>
     <div class="room" id="roomEl">
       <div class="wall"><div class="window"></div><div class="frame">🌷</div><div class="shelf s1"></div><div class="shelf s2"></div></div>
@@ -563,6 +619,81 @@
       <li>권리자의 요청이 있으면 해당 이미지를 즉시 제거합니다.</li>
     </ul>
     <button class="btn" id="closeCopyright">닫기</button>
+  </div>
+</div>
+
+<!-- 처음 접속 온보딩 / 새 프로필 -->
+<div class="modal hidden" id="onboard">
+  <div class="sheet onb-sheet">
+    <div class="onb-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    <section class="onb-step" data-step="0">
+      <h2>🎀 어서 와요!</h2>
+      <p>치이카와 굿즈를 캡슐로 뽑아 모으는 작은 게임이에요. 뭐라고 불러 드릴까요?</p>
+      <input id="onbName" maxlength="12" placeholder="닉네임 (최대 12자)" autocomplete="nickname">
+      <p class="info onb-hint">닉네임은 이 기기에서 나를 구분하는 데만 쓰여요. 가입은 없어요.</p>
+      <button class="btn" data-next>다음</button>
+      <button class="link-btn" id="onbImport">다른 기기의 진행 코드가 있어요</button>
+    </section>
+    <section class="onb-step hidden" data-step="1">
+      <h2>💕 최애는 누구예요?</h2>
+      <div class="char-pick" id="onbChars"></div>
+      <button class="btn" data-next>다음</button>
+    </section>
+    <section class="onb-step hidden" data-step="2">
+      <h2 id="onbHello">반가워요!</h2>
+      <ul class="onb-guide">
+        <li><b>🪙 가챠</b> 코인으로 캡슐을 뽑아요. 코인은 1분마다 5개씩 저절로 채워져요.</li>
+        <li><b>📖 도감</b> 뽑은 굿즈를 모으고, ☆를 눌러 즐겨찾기해요.</li>
+        <li><b>🏠 마이룸</b> 굿즈를 방에 꾸미고 📤 이미지로 공유해요.</li>
+        <li><b>👤 프로필</b> 진행 상황은 이 기기에 프로필별로 저장돼요. 다른 기기로 옮길 땐 프로필 메뉴의 "진행 상황 옮기기"를 써요.</li>
+      </ul>
+      <button class="btn" id="onbStart">시작하기</button>
+    </section>
+  </div>
+</div>
+
+<!-- 진행 상황 옮기기 -->
+<div class="modal hidden" id="transfer">
+  <div class="sheet transfer-sheet">
+    <h2>📦 진행 상황 옮기기</h2>
+    <div id="transferOut">
+      <h3>이 기기에서 내보내기</h3>
+      <p class="info">아래 코드를 복사해서 다른 기기의 "코드로 불러오기"에 붙여 넣으면, 코인·도감·마이룸이 그대로 옮겨가요.</p>
+      <textarea id="transferCode" readonly rows="3" aria-label="내 진행 코드"></textarea>
+      <button class="chip" id="transferCopy">📋 코드 복사</button>
+    </div>
+    <div>
+      <h3>코드로 불러오기</h3>
+      <textarea id="transferIn" rows="3" placeholder="여기에 진행 코드를 붙여 넣으세요" aria-label="불러올 진행 코드"></textarea>
+      <button class="btn" id="transferLoad">새 프로필로 불러오기</button>
+    </div>
+    <p class="info" id="transferMsg" role="status"></p>
+    <button class="btn ghost" id="closeTransfer">닫기</button>
+  </div>
+</div>
+
+<!-- 마이룸 공유 -->
+<div class="modal hidden" id="shareModal">
+  <div class="sheet share-sheet">
+    <h2>📤 마이룸 공유하기</h2>
+    <div class="share-preview"><img id="shareImg" alt="내 마이룸 이미지"><p id="shareLoading">이미지를 만드는 중…</p></div>
+    <div class="share-actions">
+      <button class="btn" id="shareSave">🖼️ 이미지 저장</button>
+      <button class="btn ghost" id="shareNative">📱 다른 앱으로 보내기</button>
+    </div>
+    <div class="share-sns">
+      <span class="share-label">SNS에 링크 올리기</span>
+      <a class="chip" id="shareX" target="_blank" rel="noopener">X (트위터)</a>
+      <a class="chip" id="shareFb" target="_blank" rel="noopener">Facebook</a>
+      <a class="chip" id="shareThreads" target="_blank" rel="noopener">Threads</a>
+      <a class="chip" id="shareLine" target="_blank" rel="noopener">LINE</a>
+    </div>
+    <div class="share-link">
+      <input id="shareUrl" readonly aria-label="게임 주소">
+      <button class="chip" id="shareCopy">🔗 링크 복사</button>
+    </div>
+    <p class="info" id="shareMsg" role="status"></p>
+    <button class="btn ghost" id="closeShare">닫기</button>
   </div>
 </div>
 
@@ -907,11 +1038,36 @@ const REGEN_MS = 60 * 1000, REGEN_AMOUNT = 5, REGEN_CAP = 100;
 const STORE_KEY = "goods-gacha-v3";
 // v2는 숫자 id(1~25)로 저장했으므로 JAN 코드로 옮겨줍니다.
 const V2_IDS = ["4901770054131","4901770054148","4901770054155","4901770054179","4571609414582","4571609414599","4571609389248","4571609389255","4571609409946","4571609409939","4571609409960","4571609409953","4571609414452","4571609414469","4571609414476","4571609335115","4571609335122","4571609414117","4571609414124","4571609414131","4571609362746","4571609414537","4571609414544","4571609414551","4571609414148"];
+
+// ── 프로필 ──
+// 한 기기에서 여러 사람이 각자 즐길 수 있게 진행 상황을 프로필마다 따로 저장합니다. 서버 없이 이 브라우저에만 저장돼요.
+//   목록: goods-gacha-profiles = { active, list: [{ id, name, char }] }
+//   진행: goods-gacha-v3:<프로필 id>
+// 프로필이 생기기 전의 기록(goods-gacha-v3, v2)은 첫 프로필을 만들 때 그 프로필의 기록이 됩니다.
+const PROFILES_KEY = "goods-gacha-profiles";
+const CHAR_EMOJI = { 치이카와: "🤍", 하치와레: "💙", 우사기: "💛", 랏코: "🦦", 카니: "🦀", 모몽가: "💜", 쿠리만쥬: "🌰", 시샤: "🦁" };
+function loadProfiles() {
+  try { return JSON.parse(localStorage.getItem(PROFILES_KEY)) || { active: null, list: [] }; }
+  catch { return { active: null, list: [] }; }
+}
+function saveProfiles() { try { localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles)); } catch {} }
+let profiles = loadProfiles();
+const me = () => profiles.list.find(p => p.id === profiles.active) || null;
+const keyOf = id => `${STORE_KEY}:${id}`;
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
 let state = load();
 
+function freshState() {
+  return { coins: START_COINS, owned: {}, pity: 0, lastDaily: "", total: 0, muted: false, volume: 0.7, theme: "", room: [], wall: "pink", favs: {}, regenAt: 0 };
+}
 function load() {
-  const fresh = { coins: START_COINS, owned: {}, pity: 0, lastDaily: "", total: 0, muted: false, volume: 0.7, theme: "", room: [], wall: "pink", favs: {}, regenAt: 0 };
+  const fresh = freshState();
   try {
+    if (me()) {
+      const saved = localStorage.getItem(keyOf(profiles.active));
+      return saved ? { ...fresh, ...JSON.parse(saved) } : fresh;
+    }
     const v3 = localStorage.getItem(STORE_KEY);
     if (v3) return { ...fresh, ...JSON.parse(v3) };
     const v2 = JSON.parse(localStorage.getItem("goods-gacha-v2") || "null");
@@ -924,7 +1080,22 @@ function load() {
   return fresh;
 }
 function save() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {}
+  try { localStorage.setItem(me() ? keyOf(profiles.active) : STORE_KEY, JSON.stringify(state)); } catch {}
+}
+// 프로필을 만들고 그 프로필로 들어감. data가 없으면 지금 화면의 기록(첫 프로필이면 예전 기록)을, fresh면 새 기록을 씀
+function createProfile(name, char, data) {
+  const id = newId();
+  profiles.list.push({ id, name, char });
+  profiles.active = id;
+  saveProfiles();
+  try { localStorage.setItem(keyOf(id), JSON.stringify(data || state)); } catch {}
+  return id;
+}
+function switchProfile(id) {
+  save();
+  profiles.active = id;
+  saveProfiles();
+  location.reload();
 }
 
 // ── 사운드 (WebAudio로 합성, 외부 파일 없음) ──
@@ -1510,6 +1681,7 @@ const bookFilter = makeFilter();
 const trayFilter = makeFilter({ open: false });
 
 function render() {
+  renderProfile();
   $("coins").textContent = state.coins;
   $("pull1").disabled = state.coins < 1;
   $("pull10").disabled = state.coins < 10;
@@ -1551,6 +1723,15 @@ function render() {
 
 // ── 업데이트 로그 (새 항목은 맨 위에 추가) ──
 const UPDATE_LOG = [
+  { ver: "v1.12", date: "2026-10-29", notes: [
+    "👤 프로필: 처음 접속하면 닉네임 · 최애 캐릭터를 고르는 온보딩",
+    "한 기기에서 프로필을 여러 개 만들어 각자 따로 진행 (프로필 메뉴에서 전환 · 추가 · 삭제)",
+    "📦 진행 상황 옮기기: 코드 한 줄로 다른 기기에 그대로 이어서",
+  ] },
+  { ver: "v1.11", date: "2026-10-29", notes: [
+    "📤 마이룸 공유하기: 방을 이미지(PNG)로 저장, 휴대폰에서는 다른 앱으로 바로 보내기",
+    "X · Facebook · Threads · LINE에 게임 링크 올리기, 링크 복사",
+  ] },
   { ver: "v1.10", date: "2026-10-29", notes: [
     "마이룸 크기 조절 바를 선택한 굿즈 바로 아래로 (− 슬라이더 + 와 크기 %)",
     "🪙 코인 자동 충전: 1분마다 5개씩, 100개까지",
@@ -1875,6 +2056,166 @@ $("roomTools").onclick = e => {
   if (act === "remove") { state.room = state.room.filter(x => x !== p); selected = null; }
   save(); renderRoom();
 };
+// ── 마이룸 공유 ──
+// 화면의 방을 캡처하는 대신 같은 모양을 캔버스에 다시 그려서, 선택 점선·손잡이 없이 깔끔한 그림을 만듭니다.
+// 벽지·바닥 색은 방에 걸린 CSS 변수에서 읽어 오고, 위치·크기 비율은 CSS의 % 값과 같게 맞춥니다.
+const SHARE_URL = "https://kyucheol-s.github.io/chiikawa-gacha/";
+const SHARE_TEXT = "나만의 치이카와 마이룸을 꾸몄어요 🏠 #치이카와 #ちいかわ #치이카와가챠";
+const loadImage = src => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+
+async function renderRoomImage() {
+  const W = 1200, H = 900, FOOT = 64;
+  const room = $("roomEl"), cs = getComputedStyle(room), v = n => cs.getPropertyValue(n).trim();
+  const k = W / room.getBoundingClientRect().width;
+  const c = document.createElement("canvas");
+  c.width = W; c.height = H + FOOT;
+  const x = c.getContext("2d");
+  const wallH = H * 0.65, floorH = H - wallH;
+
+  // 벽지와 물방울 무늬, 걸레받이
+  x.fillStyle = v("--wall"); x.fillRect(0, 0, W, wallH);
+  x.fillStyle = v("--wall2");
+  const step = 22 * k;
+  for (let yy = step / 2; yy < wallH; yy += step) for (let xx = step / 2; xx < W; xx += step) { x.beginPath(); x.arc(xx, yy, 2 * k, 0, 7); x.fill(); }
+  x.fillStyle = "#ffffff99"; x.fillRect(0, wallH * 0.97, W, wallH * 0.03);
+
+  // 마루 바닥
+  x.fillStyle = v("--floor"); x.fillRect(0, wallH, W, floorH);
+  x.fillStyle = v("--floor2");
+  for (let p = 0; p < W; p += W * 0.094) x.fillRect(p + W * 0.09, wallH, W * 0.004, floorH);
+
+  // 러그: 분홍 동심 타원
+  const rx = W * 0.28, ry = floorH * 0.31, rcx = W / 2, rcy = wallH + floorH * 0.53;
+  x.save(); x.globalAlpha = 0.9;
+  x.beginPath(); x.ellipse(rcx, rcy, rx, ry, 0, 0, 7); x.clip();
+  for (let i = 18; i >= 0; i--) {
+    const f = (i + 1) * 0.08 * Math.SQRT2;
+    x.fillStyle = i % 2 ? "#ffcad6" : "#ffb3c6";
+    x.beginPath(); x.ellipse(rcx, rcy, rx * f, ry * f, 0, 0, 7); x.fill();
+  }
+  x.restore();
+
+  // 창문
+  const wx = W * 0.07, wy = wallH * 0.10, ww = W * 0.22, wh = wallH * 0.46, bd = 7 * k;
+  const arch = (X, Y, w, h) => { x.beginPath(); x.roundRect(X, Y, w, h, [{ x: w * 0.4, y: h * 0.22 }, { x: w * 0.4, y: h * 0.22 }, 6 * k, 6 * k]); };
+  x.save(); x.shadowColor = "#0000001a"; x.shadowOffsetY = 4 * k;
+  x.fillStyle = "#fff"; arch(wx, wy, ww, wh); x.fill(); x.restore();
+  const ix = wx + bd, iy = wy + bd, iw = ww - bd * 2, ih = wh - bd * 2;
+  const sky = x.createLinearGradient(0, iy, 0, iy + ih);
+  sky.addColorStop(0, v("--sky1")); sky.addColorStop(1, v("--sky2"));
+  x.fillStyle = sky; arch(ix, iy, iw, ih); x.fill();
+  if (state.wall === "night") {
+    x.save(); arch(ix, iy, iw, ih); x.clip();
+    x.fillStyle = "#fff";
+    for (let yy = iy + 9 * k; yy < iy + ih; yy += 18 * k) for (let xx = ix + 9 * k; xx < ix + iw; xx += 18 * k) { x.beginPath(); x.arc(xx, yy, k, 0, 7); x.fill(); }
+    x.fillStyle = "#fff6c8"; x.beginPath(); x.arc(ix + iw * 0.7, iy + ih * 0.25, Math.min(iw, ih) * 0.12, 0, 7); x.fill();
+    x.restore();
+  }
+  x.fillStyle = "#fff";
+  x.fillRect(wx + ww / 2 - 2.5 * k, wy, 5 * k, wh);
+  x.fillRect(wx, wy + wh / 2 - 2.5 * k, ww, 5 * k);
+
+  // 액자
+  const fx = W * 0.40, fy = wallH * 0.12, fw = W * 0.13, fh = wallH * 0.20, fb = 6 * k;
+  x.fillStyle = "#c99d74"; x.beginPath(); x.roundRect(fx, fy, fw, fh, 4 * k); x.fill();
+  x.fillStyle = "#fffaf2"; x.fillRect(fx + fb, fy + fb, fw - fb * 2, fh - fb * 2);
+  x.font = `${fh * 0.42}px sans-serif`; x.textAlign = "center"; x.textBaseline = "middle";
+  x.fillText("🌷", fx + fw / 2, fy + fh / 2 + 2 * k);
+
+  // 선반
+  for (const top of [0.26, 0.48]) {
+    const sx = W * (1 - 0.07 - 0.32), sy = wallH * top, sw = W * 0.32, sh = wallH * 0.022;
+    x.fillStyle = "#00000022"; x.beginPath(); x.roundRect(sx, sy + 5 * k, sw, sh, 4 * k); x.fill();
+    x.fillStyle = "#c99d74"; x.beginPath(); x.roundRect(sx, sy, sw, sh, 4 * k); x.fill();
+  }
+
+  // 굿즈: 쌓인 순서(z)대로, 아래 가운데를 기준점으로 회전·반전
+  for (const p of [...state.room].sort((a, b) => a.z - b.z)) {
+    const item = byId(p.id);
+    const url = await cleanedUrl(item, true);
+    const im = url ? await loadImage(url) : await loadForCanvas(item);
+    if (!im) continue;
+    const w = W * p.s / 100, h = w * im.naturalHeight / im.naturalWidth;
+    x.save();
+    x.translate(W * p.x / 100, H * p.y / 100 - h / 2);
+    x.rotate((p.rot || 0) * Math.PI / 180);
+    x.scale(p.flip ? -1 : 1, 1);
+    x.shadowColor = "#00000030"; x.shadowBlur = 5 * k; x.shadowOffsetY = 6 * k;
+    x.drawImage(im, -w / 2, -h / 2, w, h);
+    x.restore();
+  }
+
+  // 아래 띠: 제목과 저작권 표기
+  x.fillStyle = "#fff6f8"; x.fillRect(0, H, W, FOOT);
+  x.fillStyle = "#4a3b40"; x.textAlign = "left"; x.textBaseline = "middle";
+  x.font = "700 26px 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+  x.fillText(`🎀 ${me() ? me().name + "의" : "나의"} 치이카와 마이룸`, 28, H + FOOT / 2);
+  x.fillStyle = "#9b8a90"; x.textAlign = "right";
+  x.font = "16px 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+  x.fillText("치이카와 굿즈 가챠 · ⓒnagano / chiikawa committee", W - 28, H + FOOT / 2);
+
+  return new Promise(res => c.toBlob(res, "image/png"));
+}
+
+let shareBlob = null;
+const shareName = () => `chiikawa-myroom-${new Date().toISOString().slice(0, 10)}.png`;
+const shareMsg = t => { $("shareMsg").textContent = t; };
+$("shareUrl").value = SHARE_URL;
+$("shareX").href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(SHARE_URL)}`;
+$("shareFb").href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}`;
+$("shareThreads").href = `https://www.threads.net/intent/post?text=${encodeURIComponent(SHARE_TEXT + " " + SHARE_URL)}`;
+$("shareLine").href = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(SHARE_URL)}`;
+
+$("roomShare").onclick = async () => {
+  if (!state.room.length) { alertRoomEmpty(); return; }
+  shareBlob = null;
+  shareMsg("");
+  $("shareImg").removeAttribute("src");
+  $("shareLoading").hidden = false;
+  $("shareModal").classList.remove("hidden");
+  shareBlob = await renderRoomImage();
+  $("shareLoading").hidden = true;
+  if (!shareBlob) return shareMsg("이미지를 만들지 못했어요. 잠시 뒤 다시 눌러 주세요.");
+  $("shareImg").src = URL.createObjectURL(shareBlob);
+  const file = new File([shareBlob], shareName(), { type: "image/png" });
+  $("shareNative").hidden = !(navigator.canShare && navigator.canShare({ files: [file] }));
+};
+function alertRoomEmpty() {
+  const b = $("roomShare");
+  b.textContent = "먼저 굿즈를 꺼내 보세요";
+  setTimeout(() => { b.textContent = "📤 공유하기"; }, 2000);
+}
+$("shareSave").onclick = async () => {
+  if (!shareBlob) return;
+  // claude.ai에서는 내려받기 권한(downloads)으로, 일반 사이트에서는 다운로드 링크로 저장
+  const dl = window.claude ? await window.claude.use("downloads") : null;
+  if (dl) {
+    try { await dl.save({ filename: shareName(), data: shareBlob }); shareMsg("이미지를 저장했어요."); }
+    catch (e) { if (e?.code !== "declined") shareMsg("이 화면에서는 저장할 수 없어요."); }
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(shareBlob);
+  a.download = shareName();
+  document.body.appendChild(a); a.click(); a.remove();
+  shareMsg("이미지를 저장했어요. SNS에 올릴 때 함께 첨부해 보세요.");
+};
+$("shareNative").onclick = async () => {
+  if (!shareBlob) return;
+  try {
+    await navigator.share({ files: [new File([shareBlob], shareName(), { type: "image/png" })], text: SHARE_TEXT + " " + SHARE_URL });
+  } catch (e) {
+    if (e?.name !== "AbortError") shareMsg("이 화면에서는 바로 보낼 수 없어요. 이미지를 저장한 뒤 보내 주세요.");
+  }
+};
+$("shareCopy").onclick = () => {
+  navigator.clipboard.writeText(SHARE_URL)
+    .then(() => shareMsg("링크를 복사했어요."))
+    .catch(() => { $("shareUrl").select(); shareMsg("링크를 선택해 두었어요. 복사해서 붙여 넣어 주세요."); });
+};
+$("closeShare").onclick = () => $("shareModal").classList.add("hidden");
+$("shareModal").onclick = e => { if (e.target.id === "shareModal") $("shareModal").classList.add("hidden"); };
+
 // 실수 방지: 한 번 누르면 확인 문구로 바뀌고, 3초 안에 한 번 더 눌러야 비웁니다.
 let clearArmed = null;
 $("roomClear").onclick = () => {
@@ -1901,12 +2242,13 @@ $("daily").onclick = () => {
   SFX.coin();
   save(); render();
 };
-$("volBtn").onclick = e => { e.stopPropagation(); $("logPop").classList.add("hidden"); $("volPop").classList.toggle("hidden"); };
+$("volBtn").onclick = e => { e.stopPropagation(); $("logPop").classList.add("hidden"); $("profilePop").classList.add("hidden"); $("volPop").classList.toggle("hidden"); };
 $("volPop").onclick = e => e.stopPropagation();
 document.addEventListener("click", () => { $("volPop").classList.add("hidden"); $("logPop").classList.add("hidden"); });
 $("logBtn").onclick = e => {
   e.stopPropagation();
   $("volPop").classList.add("hidden");
+  $("profilePop").classList.add("hidden");
   renderLog();
   $("logPop").classList.toggle("hidden");
   state.seenLog = UPDATE_LOG[0].ver;
@@ -1931,6 +2273,132 @@ addEventListener("resize", sizeFx);
 function syncGnb() { document.documentElement.style.setProperty("--gnb-h", document.querySelector(".gnb").offsetHeight + "px"); }
 addEventListener("resize", syncGnb);
 syncGnb();
+
+// ── 프로필 화면 ──
+const MAIN_CHARS = CHARACTER_GROUPS[0][1];
+function renderProfile() {
+  const p = me();
+  $("profileEmoji").textContent = p ? CHAR_EMOJI[p.char] || "🙂" : "🙂";
+  $("profileName").textContent = p ? ` ${p.name}` : "";
+  $("profileBtn").title = p ? `${p.name} 님의 프로필` : "프로필";
+  const pop = $("profilePop");
+  pop.innerHTML = "<h3>프로필 (이 기기)</h3>";
+  for (const q of profiles.list) {
+    const b = document.createElement("button");
+    b.className = q.id === profiles.active ? "cur" : "";
+    b.innerHTML = `<span>${CHAR_EMOJI[q.char] || "🙂"}</span>`;
+    b.append(q.name);
+    if (q.id !== profiles.active) b.onclick = () => switchProfile(q.id);
+    pop.appendChild(b);
+  }
+  const action = (label, fn, cls) => { const b = document.createElement("button"); b.textContent = label; if (cls) b.className = cls; b.onclick = fn; pop.appendChild(b); return b; };
+  action("＋ 새 프로필 만들기", () => { $("profilePop").classList.add("hidden"); openOnboard(true); });
+  pop.appendChild(document.createElement("hr"));
+  action("📦 진행 상황 옮기기", () => { $("profilePop").classList.add("hidden"); openTransfer(); });
+  if (p) {
+    let armed = null;
+    const del = action(`🗑 '${p.name}' 프로필 삭제`, () => {
+      if (!armed) { del.textContent = "한 번 더 누르면 기록까지 지워져요"; armed = setTimeout(() => { armed = null; del.textContent = `🗑 '${p.name}' 프로필 삭제`; }, 3000); return; }
+      try { localStorage.removeItem(keyOf(p.id)); } catch {}
+      profiles.list = profiles.list.filter(q => q.id !== p.id);
+      profiles.active = profiles.list[0]?.id || null;
+      saveProfiles();
+      location.reload();
+    }, "danger");
+  }
+  const greet = document.querySelector(".control-head p");
+  if (greet) greet.textContent = `${p ? p.name + " 님, " : ""}코인 1개로 1회, 10개로 10연차를 뽑아요.`;
+}
+$("profileBtn").onclick = e => {
+  e.stopPropagation();
+  $("logPop").classList.add("hidden");
+  $("volPop").classList.add("hidden");
+  $("profilePop").classList.toggle("hidden");
+};
+$("profilePop").onclick = e => e.stopPropagation();
+document.addEventListener("click", () => $("profilePop").classList.add("hidden"));
+
+// 온보딩: 닉네임 → 최애 → 사용법. 처음 접속(프로필 없음)이면 자동으로, "새 프로필"이면 새 기록으로 시작
+let onbFresh = false, onbChar = "치이카와", onbStep = 0;
+function showOnbStep(n) {
+  onbStep = n;
+  document.querySelectorAll(".onb-step").forEach(s => s.classList.toggle("hidden", Number(s.dataset.step) !== n));
+  document.querySelectorAll(".onb-dots i").forEach((d, i) => d.classList.toggle("on", i <= n));
+  if (n === 0) setTimeout(() => $("onbName").focus(), 50);
+  if (n === 2) $("onbHello").textContent = `${CHAR_EMOJI[onbChar]} 반가워요, ${$("onbName").value.trim() || "친구"} 님!`;
+}
+function openOnboard(fresh) {
+  onbFresh = fresh;
+  $("onbName").value = "";
+  $("onbImport").hidden = fresh;
+  const pick = $("onbChars");
+  pick.innerHTML = "";
+  for (const c of MAIN_CHARS) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = `<span>${CHAR_EMOJI[c]}</span>${c}`;
+    b.classList.toggle("on", c === onbChar);
+    b.onclick = () => { onbChar = c; pick.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); };
+    pick.appendChild(b);
+  }
+  showOnbStep(0);
+  $("onboard").classList.remove("hidden");
+}
+document.querySelectorAll("#onboard [data-next]").forEach(b => b.onclick = () => {
+  if (onbStep === 0 && !$("onbName").value.trim()) { $("onbName").focus(); $("onbName").placeholder = "닉네임을 적어 주세요"; return; }
+  showOnbStep(onbStep + 1);
+});
+$("onbName").addEventListener("keydown", e => { if (e.key === "Enter") document.querySelector('#onboard [data-step="0"] [data-next]').click(); });
+$("onbStart").onclick = () => {
+  const name = $("onbName").value.trim().slice(0, 12) || "친구";
+  if (onbFresh) { save(); createProfile(name, onbChar, freshState()); location.reload(); return; }
+  createProfile(name, onbChar);
+  $("onboard").classList.add("hidden");
+  render();
+};
+$("onbImport").onclick = () => openTransfer();
+// 프로필을 처음 만드는 중에는 닫을 수 없게(배경 눌러도 유지), 새 프로필 만들기는 배경을 눌러 취소
+$("onboard").onclick = e => { if (e.target.id === "onboard" && onbFresh) $("onboard").classList.add("hidden"); };
+
+// 진행 상황 옮기기: 프로필과 기록을 한 줄 코드(Base64 JSON)로 내보내고, 다른 기기에서 새 프로필로 불러옴
+const CODE_PREFIX = "CGG1.";
+function exportCode() {
+  const p = me() || { name: "친구", char: "치이카와" };
+  const json = JSON.stringify({ p: { name: p.name, char: p.char }, s: state });
+  return CODE_PREFIX + btoa(String.fromCharCode(...new TextEncoder().encode(json)));
+}
+function parseCode(text) {
+  const t = text.trim().replace(/\s+/g, "");
+  if (!t.startsWith(CODE_PREFIX)) return null;
+  try {
+    const bytes = Uint8Array.from(atob(t.slice(CODE_PREFIX.length)), c => c.charCodeAt(0));
+    const data = JSON.parse(new TextDecoder().decode(bytes));
+    if (!data?.s || typeof data.s.owned !== "object") return null;
+    return data;
+  } catch { return null; }
+}
+function openTransfer() {
+  $("transferOut").hidden = !me();
+  if (me()) $("transferCode").value = exportCode();
+  $("transferIn").value = "";
+  $("transferMsg").textContent = "";
+  $("transfer").classList.remove("hidden");
+}
+$("transferCopy").onclick = () => {
+  navigator.clipboard.writeText($("transferCode").value)
+    .then(() => { $("transferMsg").textContent = "코드를 복사했어요. 다른 기기에서 붙여 넣어 주세요."; })
+    .catch(() => { $("transferCode").select(); $("transferMsg").textContent = "코드를 선택해 두었어요. 복사해서 옮겨 주세요."; });
+};
+$("transferLoad").onclick = () => {
+  const data = parseCode($("transferIn").value);
+  if (!data) { $("transferMsg").textContent = "코드를 읽지 못했어요. 처음부터 끝까지 빠짐없이 붙여 넣었는지 확인해 주세요."; return; }
+  if (me()) save();
+  const name = String(data.p?.name || "친구").slice(0, 12);
+  const char = MAIN_CHARS.includes(data.p?.char) ? data.p.char : "치이카와";
+  createProfile(name, char, { ...freshState(), ...data.s });
+  location.reload();
+};
+$("closeTransfer").onclick = () => $("transfer").classList.add("hidden");
 
 // ── 코인 자동 충전 ──
 // 마지막 충전 시각(regenAt)부터 흐른 시간만큼 한꺼번에 채워서, 페이지를 닫아 둔 동안에도 충전됩니다.
@@ -1964,6 +2432,8 @@ function tickRegen() {
 render();
 tickRegen();
 setInterval(tickRegen, 1000);
+// 처음 접속했거나 프로필이 없으면 온보딩부터
+if (!me()) openOnboard(false);
 </script>
 </body>
 </html>
