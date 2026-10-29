@@ -1,0 +1,1568 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>치이카와 굿즈 가챠</title>
+<style>
+  :root {
+    --bg: #fff6f8;
+    --panel: #ffffff;
+    --ink: #4a3b40;
+    --muted: #9b8a90;
+    --accent: #ff8fab;
+    --accent-dark: #e86a8c;
+    --machine: #ffd6e0;
+    --glass: #eaf6ff;
+    --N: #b8c4cc;
+    --R: #6fb7ff;
+    --SR: #c48bff;
+    --SSR: #ffbf3c;
+    --rainbow: linear-gradient(135deg, #ff8fab, #ffbf3c, #8ce0b5, #6fb7ff, #c48bff);
+    --card: #ffffff;
+    --art-bg: #f7f3f4;
+    --line: #f0dde3;
+    --shadow: #0000001a;
+  }
+  /* 다크 모드: 시스템 설정을 따르되, 버튼으로 고른 테마가 우선 */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1719; --panel: #2a2326; --ink: #f3e9ec; --muted: #a8979d;
+      --machine: #6a4352; --glass: #2b3944; --card: #2a2326; --art-bg: #f1eaec; --line: #3b3034; --shadow: #00000066; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1719; --panel: #2a2326; --ink: #f3e9ec; --muted: #a8979d;
+    --machine: #6a4352; --glass: #2b3944; --card: #2a2326; --art-bg: #f1eaec; --line: #3b3034; --shadow: #00000066; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column;
+  }
+  /* ── 상단 GNB ── */
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 16; background: var(--bg); }
+  .gnb { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 15; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+  .gnb-in { display: flex; align-items: center; gap: 12px; padding: 10px 16px; max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 17px; margin: 0; white-space: nowrap; }
+  .gnb nav { flex: 1; justify-content: flex-start; margin: 0; }
+  @media (max-width: 767px) {
+    .gnb-in { flex-wrap: wrap; row-gap: 6px; }
+    .gnb .hud { margin-left: auto; }
+    .gnb nav { order: 3; flex-basis: 100%; justify-content: center; }
+  }
+  .text-btn { border: 0; background: var(--panel); color: var(--ink); border-radius: 999px; padding: 7px 12px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px var(--shadow); position: relative; white-space: nowrap; }
+  .text-btn .dot { position: absolute; top: 3px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent-dark); }
+  .pop-wrap { position: relative; }
+  .pop { position: absolute; right: 0; top: 44px; z-index: 50; background: var(--panel); color: var(--ink); border-radius: 14px; box-shadow: 0 6px 20px var(--shadow); }
+  .log-pop { width: min(340px, calc(100vw - 32px)); max-height: 65vh; overflow: auto; padding: 14px 16px; }
+  .log-pop h3 { margin: 0 0 8px; font-size: 15px; }
+  .log-entry { padding: 10px 0; border-top: 1px solid var(--line); font-size: 13px; line-height: 1.6; }
+  .log-entry .ver { font-weight: 800; }
+  .log-entry .date { color: var(--muted); font-size: 12px; margin-left: 6px; }
+  .log-entry .tag { font-size: 10px; font-weight: 800; color: #fff; background: var(--accent); border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; }
+  .log-entry ul { margin: 4px 0 0; padding-left: 18px; }
+
+  /* ── 확률표 ── */
+  .rate-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 12px; }
+  .rate-table th, .rate-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: center; }
+  .rate-table th { font-size: 12px; color: var(--muted); font-weight: 700; }
+  .rate-table td:first-child { font-weight: 800; }
+  .rate-list summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
+  .rate-list ul { margin: 4px 0 8px; padding-left: 18px; font-size: 13px; color: var(--muted); columns: 2; column-gap: 20px; }
+  @media (max-width: 520px) { .rate-list ul { columns: 1; } }
+  .pity-bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; margin: 6px 0 2px; }
+  .pity-bar > div { height: 100%; background: linear-gradient(90deg, var(--SR), var(--SSR)); }
+  .hud { display: flex; gap: 8px; align-items: center; }
+  .coins { background: var(--panel); border-radius: 999px; padding: 6px 14px; font-weight: 700; box-shadow: 0 2px 8px #0001; }
+  .coins.bump { animation: bump .3s; }
+  @keyframes bump { 50% { transform: scale(1.2); } }
+  .icon-btn { border: 0; background: var(--panel); border-radius: 50%; width: 36px; height: 36px; cursor: pointer; box-shadow: 0 2px 8px #0001; font-size: 16px; }
+  nav { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
+  nav button { border: 0; background: transparent; padding: 8px 16px; border-radius: 999px; font: inherit; color: var(--muted); cursor: pointer; }
+  nav button.on { background: var(--panel); color: var(--ink); font-weight: 700; box-shadow: 0 2px 8px #0001; }
+  main { max-width: 960px; width: 100%; margin: 0 auto; padding: 0 16px 32px; flex: 1; }
+  .hidden { display: none !important; }
+
+  .news { background: linear-gradient(90deg, #ff9f43, #c48bff); color: #fff; font-weight: 700; font-size: 13px; padding: 6px 14px; border-radius: 999px; text-align: center; }
+
+  /* ── 가챠 머신 ── */
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .machine { width: 240px; position: relative; }
+  .machine.shake { animation: mshake .12s infinite alternate; }
+  .machine.shake.hard { animation-duration: .06s; }
+  @keyframes mshake { from { transform: translateX(-3px) rotate(-1deg); } to { transform: translateX(3px) rotate(1deg); } }
+  .dome {
+    width: 240px; height: 200px; border-radius: 120px 120px 20px 20px;
+    background: var(--glass); border: 6px solid #fff; box-shadow: inset 0 -10px 30px #0001, 0 4px 14px #0001;
+    position: relative; overflow: hidden;
+  }
+  .dome::after { content: ""; position: absolute; left: 24px; top: 18px; width: 40px; height: 90px; border-radius: 40px; background: #fff8; transform: rotate(20deg); }
+  .dome .ball { position: absolute; width: 44px; height: 44px; border-radius: 50%; border: 3px solid #fff; }
+  .machine.shake .dome .ball { animation: jiggle .15s infinite alternate; }
+  @keyframes jiggle { to { transform: translate(3px,-6px) rotate(14deg); } }
+  .machine.glow-SR .dome { box-shadow: 0 0 30px var(--SR), inset 0 -10px 30px #0001; }
+  .machine.glow-SSR .dome { box-shadow: 0 0 40px var(--SSR), 0 0 80px #ff8fab, inset 0 -10px 30px #0001; }
+  .body {
+    background: var(--machine); height: 140px; border-radius: 0 0 24px 24px; margin-top: -6px;
+    display: flex; align-items: center; justify-content: space-around; position: relative;
+  }
+  .coin-slot { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 30px; height: 6px; border-radius: 3px; background: #c995a5; }
+  .flying-coin { position: fixed; z-index: 30; font-size: 26px; pointer-events: none; transition: transform .5s cubic-bezier(.5,-0.4,.7,1), opacity .5s; }
+  .knob {
+    width: 70px; height: 70px; border-radius: 50%; background: #fff; border: 0; cursor: pointer;
+    box-shadow: 0 3px 0 #0002; position: relative; transition: transform .7s ease-in-out;
+  }
+  .knob::after { content: ""; position: absolute; left: 30px; top: 8px; width: 10px; height: 54px; border-radius: 5px; background: var(--accent); }
+  .knob.turn { transform: rotate(360deg); }
+  .slot { width: 64px; height: 56px; border-radius: 12px; background: #c995a5; box-shadow: inset 0 6px 10px #0003; position: relative; }
+  .capsule-mini { position: absolute; left: 10px; top: -40px; width: 44px; height: 44px; border-radius: 50%; border: 3px solid #fff; opacity: 0; }
+  .capsule-mini.go { animation: drop .6s ease-in forwards; }
+  @keyframes drop { 0% { opacity: 1; top: -40px; } 70% { top: 10px; } 85% { top: 2px; } 100% { opacity: 1; top: 8px; } }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .btn {
+    border: 0; border-radius: 14px; padding: 12px 20px; font: inherit; font-weight: 700; cursor: pointer;
+    background: var(--accent); color: #fff; box-shadow: 0 4px 0 var(--accent-dark);
+  }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--accent-dark); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.ghost { background: var(--panel); color: var(--ink); box-shadow: 0 4px 0 #0001; }
+  .info { font-size: 13px; color: var(--muted); text-align: center; line-height: 1.6; margin: 0; }
+
+  /* ── 아이템 카드 ── */
+  .item {
+    border-radius: 14px; padding: 8px 6px 10px; background: var(--card); border: 3px solid var(--c, var(--N));
+    display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .item.SSR { border-image: var(--rainbow) 1; border-radius: 0; }
+  .item .art { width: 100%; aspect-ratio: 1; border-radius: 10px; display: grid; place-items: center; font-size: 32px; background: var(--art-bg); overflow: hidden; }
+  .item .art img { width: 100%; height: 100%; object-fit: cover; }
+  .item .rar { font-weight: 800; color: var(--c); font-size: 11px; }
+  .item .ser { font-size: 10px; color: var(--muted); }
+  .item .nm { line-height: 1.3; }
+  .item.new::before { content: "NEW"; position: absolute; top: 6px; left: 6px; z-index: 2; font-size: 10px; font-weight: 800; color: #fff; background: var(--accent); border-radius: 6px; padding: 1px 6px; }
+  .item.locked .art { filter: grayscale(1) brightness(.2); opacity: .35; }
+  .item .cnt { color: var(--muted); }
+  .item a { color: var(--muted); font-size: 11px; }
+  .item.shine::after {
+    content: ""; position: absolute; inset: -50%; pointer-events: none; background: linear-gradient(110deg, transparent 40%, #fff9 50%, transparent 60%);
+    animation: shine 1.6s ease-in-out infinite;
+  }
+  @keyframes shine { from { transform: translateX(-60%); } to { transform: translateX(60%); } }
+
+  /* ── 개봉 연출 (풀스크린) ── */
+  .overlay { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; background: radial-gradient(circle, #5a3a48ee, #1d1218f5); color: #fff; transition: background .5s; overflow: hidden; }
+  .overlay.sr-mode { background: radial-gradient(circle, #6b3fa0f0, #1a0d2ef8); }
+  .overlay.dark { background: #000; }
+  .overlay.ssr-mode { background: radial-gradient(circle, #7a4a12f0, #1a0f00fa); }
+  .overlay.quake { animation: quake .08s 6 alternate; }
+  @keyframes quake { from { transform: translate(-6px, 3px); } to { transform: translate(6px, -3px); } }
+  .flashlayer { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 8; }
+  .flashlayer.go { animation: flash .9s ease-out; }
+  @keyframes flash { from { opacity: 1; } to { opacity: 0; } }
+  #fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 7; }
+  .rays { position: absolute; width: 760px; height: 760px; border-radius: 50%; opacity: 0; transition: opacity .4s;
+    background: repeating-conic-gradient(from 0deg, var(--rc, #fff3) 0 10deg, transparent 10deg 20deg);
+    mask: radial-gradient(circle, #000 20%, transparent 65%); -webkit-mask: radial-gradient(circle, #000 20%, transparent 65%);
+    animation: spin 12s linear infinite; }
+  .rays.on { opacity: 1; }
+  .rays.rainbow { background: repeating-conic-gradient(from 0deg, #ff8fab66 0 8deg, transparent 8deg 15deg, #ffbf3c66 15deg 23deg, transparent 23deg 30deg, #6fb7ff66 30deg 38deg, transparent 38deg 45deg); animation-duration: 5s; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SR: 마법진 */
+  .magic { position: absolute; width: 340px; height: 340px; opacity: 0; transform: scale(.4); transition: opacity .4s, transform .6s cubic-bezier(.2,1.4,.5,1); pointer-events: none; }
+  .magic.on { opacity: 1; transform: scale(1); }
+  .magic::before, .magic::after { content: ""; position: absolute; inset: 0; border-radius: 50%; }
+  .magic::before { border: 3px dashed #e3c8ff; box-shadow: 0 0 24px #c48bff, inset 0 0 24px #c48bff; animation: spin 6s linear infinite; }
+  .magic::after { inset: 40px; border: 2px solid #f0e2ff; background: repeating-conic-gradient(#c48bff55 0 15deg, transparent 15deg 30deg); animation: spin 4s linear infinite reverse; }
+
+  /* 등급 배너 */
+  .banner { position: absolute; top: 14%; z-index: 9; font-weight: 900; letter-spacing: 4px; opacity: 0; pointer-events: none; white-space: nowrap; }
+  .banner.SR { font-size: 30px; color: #f3e6ff; text-shadow: 0 0 10px #c48bff, 0 0 30px #c48bff; }
+  .banner.SR.show { animation: slideIn .6s cubic-bezier(.2,1.2,.5,1) forwards; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-120px) skewX(-20deg); } to { opacity: 1; transform: none; } }
+  .banner.SSR { font-size: 52px; background: linear-gradient(90deg, #fff6b0, #ffbf3c, #ff8fab, #ffbf3c, #fff6b0); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 12px #ffbf3c); }
+  .banner.SSR.show { animation: slam .5s cubic-bezier(.3,1.6,.5,1) forwards, goldflow 1.5s linear .5s infinite; }
+  @keyframes slam { from { opacity: 0; transform: scale(3); } to { opacity: 1; transform: scale(1); } }
+  @keyframes goldflow { to { background-position: 200% 0; } }
+
+  .big-capsule { position: relative; width: 170px; height: 170px; cursor: pointer; z-index: 2; }
+  .big-capsule .half { position: absolute; left: 0; width: 170px; height: 85px; border: 5px solid #fff; transition: transform .5s cubic-bezier(.3,1.6,.6,1), opacity .5s; }
+  .big-capsule .top { top: 0; border-radius: 85px 85px 0 0; border-bottom-width: 2px; background: var(--cap, var(--accent)); }
+  .big-capsule .bottom { bottom: 0; border-radius: 0 0 85px 85px; border-top-width: 2px; background: #fffaf7; }
+  .big-capsule .top::after { content: ""; position: absolute; left: 26px; top: 16px; width: 30px; height: 20px; border-radius: 50%; background: #fff7; }
+  .big-capsule.wobble { animation: wobble .5s ease-in-out infinite; }
+  .big-capsule.wobble.hard { animation-duration: .25s; }
+  @keyframes wobble { 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+  .big-capsule.open .top { transform: translateY(-140px) rotate(-30deg); opacity: 0; }
+  .big-capsule.open .bottom { transform: translateY(140px) rotate(20deg); opacity: 0; }
+  .big-capsule.SSR .top { background: var(--rainbow); background-size: 300% 300%; animation: rainbow 1.5s linear infinite; }
+  @keyframes rainbow { to { background-position: 300% 0; } }
+  .big-capsule.float { animation: float 0.7s ease-in-out forwards; }
+  @keyframes float { to { transform: translateY(-20px) scale(1.1); filter: drop-shadow(0 0 20px #e3c8ff); } }
+  .big-capsule.charging { animation: charge .05s infinite alternate; filter: drop-shadow(0 0 30px #ffbf3c) brightness(1.3); }
+  .big-capsule.charging::after { content: ""; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 0 60px 40px #ffe7a0; animation: grow 1.4s ease-in forwards; transform: translate(-50%, -50%); }
+  @keyframes charge { from { transform: translate(-4px, 2px) rotate(-3deg) scale(1.05); } to { transform: translate(4px, -2px) rotate(3deg) scale(1.08); } }
+  @keyframes grow { to { box-shadow: 0 0 120px 110px #fff3c0; } }
+  .tap-hint { margin-top: 18px; font-size: 14px; opacity: .85; animation: blink 1s infinite alternate; z-index: 2; }
+  @keyframes blink { to { opacity: .3; } }
+  #revealSlot { position: absolute; inset: 0; display: grid; place-items: center; z-index: 6; pointer-events: none; }
+  #revealSlot > * { pointer-events: auto; }
+  .reveal-card { width: 220px; color: var(--ink); font-size: 14px; }
+  .reveal-card .rar { font-size: 20px; letter-spacing: 2px; }
+  .reveal-card.pop { animation: bigpop .6s cubic-bezier(.2,1.6,.5,1) backwards; }
+  .reveal-card.SR { box-shadow: 0 0 24px #c48bff, 0 0 60px #c48bff88; animation: bigpop .6s cubic-bezier(.2,1.6,.5,1) backwards, srPulse 1.2s ease-in-out .6s infinite alternate; }
+  @keyframes srPulse { to { box-shadow: 0 0 36px #e3c8ff, 0 0 90px #c48bffaa; } }
+  .reveal-card.SSR { animation: flip3d 1s cubic-bezier(.2,.9,.3,1.2) backwards, ssrGlow 1s linear 1s infinite; }
+  @keyframes flip3d { 0% { transform: perspective(900px) rotateY(720deg) scale(.2); opacity: 0; } 40% { opacity: 1; } 100% { transform: perspective(900px) rotateY(0) scale(1); } }
+  @keyframes ssrGlow { 0% { box-shadow: 0 0 30px #ffbf3c, 0 0 80px #ff8fab; } 50% { box-shadow: 0 0 40px #8ce0b5, 0 0 90px #6fb7ff; } 100% { box-shadow: 0 0 30px #ffbf3c, 0 0 80px #ff8fab; } }
+  @keyframes bigpop { from { transform: scale(0) rotate(-20deg); opacity: 0; } }
+  .counter { position: absolute; top: 16px; left: 16px; font-weight: 700; z-index: 10; }
+  .skip { position: absolute; top: 12px; right: 16px; z-index: 10; background: #fff3; color: #fff; border: 1px solid #fff6; border-radius: 999px; padding: 6px 14px; font: inherit; cursor: pointer; }
+  .next-row { position: absolute; bottom: 32px; z-index: 10; display: flex; gap: 10px; }
+
+  .summary { background: var(--panel); color: var(--ink); border-radius: 20px; padding: 20px; max-width: 600px; width: 100%; max-height: 85vh; overflow: auto; text-align: center; z-index: 10; animation: bigpop .4s backwards; }
+  .summary h2 { margin: 0; }
+  .results { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; margin: 16px 0; }
+  .results .item { animation: bigpop .4s backwards; }
+  .results .item.SR { box-shadow: 0 0 12px #c48bff; }
+  .results .item.SSR { animation: bigpop .4s backwards, ssrGlow 1.5s linear infinite; }
+
+  /* ── 도감 ── */
+  .progress { text-align: center; margin: 8px 0 16px; font-weight: 700; }
+  .bar { height: 10px; background: var(--panel); border-radius: 5px; overflow: hidden; max-width: 320px; margin: 6px auto 0; }
+  .bar > div { height: 100%; background: var(--accent); transition: width .4s; }
+  .book { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .filters { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .filters button { border: 2px solid var(--c, var(--line)); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+  .filters button.on { background: var(--c, var(--accent)); color: #fff; }
+
+  /* ── 저작권 ── */
+  footer { text-align: center; padding: 16px; font-size: 12px; color: var(--muted); line-height: 1.7; border-top: 1px solid var(--line); }
+  footer button { background: none; border: 0; color: var(--accent-dark); text-decoration: underline; cursor: pointer; font: inherit; }
+  .modal { position: fixed; inset: 0; background: #0006; display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 40; }
+  .modal .sheet { background: var(--panel); border-radius: 20px; padding: 20px 22px; max-width: 520px; width: 100%; max-height: 85vh; overflow: auto; font-size: 14px; line-height: 1.7; }
+  .modal h2 { margin-top: 0; font-size: 18px; }
+  .modal li { margin-bottom: 6px; }
+
+  /* ── 볼륨 ── */
+  .vol-wrap { position: relative; }
+  .vol-pop { position: absolute; right: 0; top: 44px; z-index: 50; background: var(--panel); border-radius: 14px; padding: 10px 12px; box-shadow: 0 6px 20px var(--shadow); display: flex; align-items: center; gap: 8px; }
+  .vol-pop input { width: 130px; accent-color: var(--accent); }
+  .vol-pop .val { font-size: 12px; color: var(--muted); width: 28px; text-align: right; }
+  .vol-pop .icon-btn { width: 30px; height: 30px; font-size: 14px; box-shadow: none; background: var(--bg); }
+  .icon-btn { color: var(--ink); }
+
+  /* ── 확대 보기 ── */
+  .book .item:not(.locked) { cursor: zoom-in; }
+  .zoom-sheet { position: relative; background: var(--panel); color: var(--ink); border-radius: 20px; padding: 16px; max-width: 640px; width: 100%; text-align: center; animation: bigpop .3s backwards; }
+  .zoom-frame { overflow: hidden; border-radius: 14px; background: #fff; cursor: zoom-in; }
+  .zoom-frame img { display: block; width: 100%; max-height: 66vh; object-fit: contain; transition: transform .25s; }
+  .zoom-frame.zoomed { cursor: zoom-out; }
+  .zoom-frame.zoomed img { transform: scale(2.2); }
+  .zoom-close { position: absolute; top: 8px; right: 8px; z-index: 2; }
+  .zoom-info { margin-top: 10px; font-size: 14px; line-height: 1.6; }
+  .zoom-info .rar { font-weight: 800; }
+  .zoom-info a { color: var(--accent-dark); font-size: 13px; }
+
+  /* ── 마이룸 ── */
+  .room-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 13px; }
+  .swatch { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--panel); cursor: pointer; box-shadow: 0 1px 4px var(--shadow); }
+  .swatch.on { outline: 2px solid var(--accent); }
+  .btn.small { padding: 6px 12px; font-size: 13px; border-radius: 10px; }
+  .room {
+    position: relative; width: 100%; max-width: 760px; margin: 0 auto; aspect-ratio: 4 / 3; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 6px 24px var(--shadow); touch-action: none; user-select: none; -webkit-user-select: none;
+    --wall: #ffe4ec; --wall2: #ffd3df; --floor: #e8c9a8; --floor2: #d9b48f; --sky1: #9fd3ff; --sky2: #e6f5ff;
+  }
+  .room[data-wall="mint"] { --wall: #dff5ec; --wall2: #c6ecdb; }
+  .room[data-wall="sky"] { --wall: #e2efff; --wall2: #cbe1fb; }
+  .room[data-wall="cream"] { --wall: #fff4dc; --wall2: #ffe6b5; }
+  .room[data-wall="night"] { --wall: #463f66; --wall2: #3a3457; --floor: #7a6552; --floor2: #6a5646; --sky1: #141a3e; --sky2: #3b4588; }
+  .room .wall { position: absolute; inset: 0 0 35% 0; background: radial-gradient(var(--wall2) 2px, transparent 2.5px) 0 0 / 22px 22px, var(--wall); }
+  .room .wall::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3%; background: #ffffff99; }
+  .room .floor { position: absolute; inset: 65% 0 0 0; background: repeating-linear-gradient(90deg, var(--floor) 0 9%, var(--floor2) 9% 9.4%); }
+  .room .window { position: absolute; left: 7%; top: 10%; width: 22%; height: 46%; border: 7px solid #fff; border-radius: 40% 40% 6px 6px / 22% 22% 6px 6px; background: linear-gradient(var(--sky1), var(--sky2)); box-shadow: 0 4px 0 #0001; }
+  .room[data-wall="night"] .window { background: radial-gradient(circle at 70% 25%, #fff6c8 0 9%, transparent 10%), radial-gradient(#fff 1px, transparent 1.5px) 0 0 / 18px 18px, linear-gradient(var(--sky1), var(--sky2)); }
+  .room .window::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 5px; margin-left: -2.5px; background: #fff; }
+  .room .window::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 5px; background: #fff; }
+  .room .frame { position: absolute; left: 40%; top: 12%; width: 13%; height: 20%; border: 6px solid #c99d74; border-radius: 4px; background: #fffaf2; display: grid; place-items: center; font-size: clamp(16px, 4vw, 34px); }
+  .room .shelf { position: absolute; right: 7%; width: 32%; height: 2.2%; background: #c99d74; border-radius: 4px; box-shadow: 0 5px 0 #0002; }
+  .room .shelf.s1 { top: 26%; }
+  .room .shelf.s2 { top: 48%; }
+  .room .rug { position: absolute; left: 22%; top: 22%; width: 56%; height: 62%; border-radius: 50%; background: repeating-radial-gradient(#ffb3c6 0 8%, #ffcad6 8% 16%); opacity: .9; }
+  .placed { position: absolute; transform: translate(-50%, -100%); cursor: grab; touch-action: none; mix-blend-mode: multiply; }
+  .placed:active { cursor: grabbing; }
+  .placed img { display: block; width: 100%; pointer-events: none; -webkit-user-drag: none; }
+  .placed.flip img { transform: scaleX(-1); }
+  .placed.sel { outline: 2px dashed var(--accent-dark); outline-offset: 3px; border-radius: 6px; }
+  .room-empty { position: absolute; inset: 0; display: grid; place-items: center; color: #9b8a90; font-size: 14px; pointer-events: none; text-align: center; padding: 16px; }
+  .room-tools { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 10px 0 4px; }
+  .room-tools button { border: 0; background: var(--panel); color: var(--ink); border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px var(--shadow); }
+  .tray-title { text-align: center; font-size: 15px; margin: 18px 0 8px; }
+  .tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+  .tray .item { cursor: pointer; font-size: 11px; padding: 6px 4px 8px; }
+  .tray .item.used { opacity: .4; cursor: default; }
+  .tray .item .ser { display: none; }
+
+  /* ── 필터 ── */
+  .filter-panel { background: var(--panel); border-radius: 16px; padding: 10px 12px; margin: 0 auto 12px; max-width: 960px; box-shadow: 0 2px 8px var(--shadow); }
+  .fhead { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .fhead span { color: var(--muted); flex: 1; }
+  .frow { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; border-top: 1px solid var(--line); margin-top: 6px; }
+  .flabel { flex: 0 0 48px; font-size: 12px; font-weight: 700; color: var(--muted); padding-top: 5px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 2px solid var(--c, var(--line)); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .chip.on { background: var(--c, var(--accent)); border-color: var(--c, var(--accent)); color: #fff; }
+  .chip .n { opacity: .6; margin-left: 4px; font-size: 11px; }
+  .cgroup { flex-basis: 100%; font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .ffoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); padding-top: 8px; border-top: 1px solid var(--line); margin-top: 6px; }
+  .ffoot input { accent-color: var(--accent); vertical-align: middle; }
+
+  /* ── 반응형 ──
+     모바일 ~767px (기준 기기 폭 360 · 375 · 390 · 430) / 태블릿 768~1023px / 데스크톱 1024px~ (기준 1280 · 1440)
+     --gnb-h는 상단 메뉴바 실제 높이로, 스크립트가 채웁니다. */
+  :root { --gnb-h: 64px; }
+  main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .stage { min-height: calc(100svh - var(--gnb-h) - 40px); justify-content: center; gap: 24px; padding-block: 8px 24px; }
+  .machine-area { display: grid; place-items: center; }
+  .machine { zoom: var(--mz, 1); }
+  .control { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 420px; }
+  .control-head h2 { margin: 0; font-size: 20px; text-wrap: balance; }
+  .control-head p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+  .control .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .control #daily { grid-column: 1 / -1; }
+  .meters { display: grid; gap: 10px; background: var(--panel); border-radius: 14px; padding: 12px 14px; box-shadow: 0 2px 8px var(--shadow); }
+  .meter-label { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .meter-label span:first-child { font-weight: 700; color: var(--ink); }
+  .rate-btn { align-self: center; }
+
+  /* 모바일: 머신과 버튼만 세로로, 화면 가운데에 */
+  @media (max-width: 767px) {
+    .control-head { display: none; }
+    /* 메뉴바: 로고 + 버튼 한 줄, 탭 한 줄 */
+    .gnb-in { padding-block: 8px; column-gap: 8px; }
+    .gnb h1 { flex: 1 1 0; min-width: 0; font-size: 15px; overflow: hidden; text-overflow: ellipsis; }
+    .gnb .hud { gap: 6px; }
+    .gnb .icon-btn { width: 32px; height: 32px; font-size: 14px; }
+    .gnb .coins { padding: 5px 10px; font-size: 13px; }
+    .gnb #logBtn { padding: 7px 9px; }
+    .gnb #logBtn .lbl { display: none; }
+  }
+  @media (max-width: 359px) { .machine { --mz: .85; } }
+  @media (min-width: 390px) and (max-width: 767px) { .machine { --mz: 1.1; } }
+  /* 태블릿 */
+  @media (min-width: 768px) {
+    .machine { --mz: 1.3; }
+    .control-head { text-align: center; }
+    .book { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  }
+  /* 데스크톱: 왼쪽 머신, 오른쪽 조작 패널 */
+  @media (min-width: 1024px) {
+    main, .gnb-in { max-width: 1120px; }
+    .stage { flex-direction: row; gap: clamp(48px, 7vw, 120px); }
+    .machine { --mz: 1.55; }
+    .control { max-width: 380px; gap: 18px; }
+    .control-head { text-align: left; }
+    .control-head h2 { font-size: 28px; }
+    .control .btn { padding: 16px 20px; font-size: 16px; }
+    .rate-btn { align-self: flex-start; }
+    .room { max-width: 900px; }
+    .book { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  }
+  @media (min-width: 1024px) and (max-height: 760px) { .machine { --mz: 1.3; } }
+</style>
+</head>
+<body>
+<header class="gnb">
+ <div class="gnb-in">
+  <h1>🎀 치이카와 굿즈 가챠</h1>
+  <nav>
+    <button data-tab="gacha" class="on">가챠</button>
+    <button data-tab="book">도감</button>
+    <button data-tab="room">마이룸</button>
+  </nav>
+  <div class="hud">
+    <div class="pop-wrap">
+      <button class="text-btn" id="logBtn" aria-label="업데이트 로그">📢<span class="lbl"> 업데이트</span><span class="dot hidden" id="logDot"></span></button>
+      <div class="pop log-pop hidden" id="logPop"></div>
+    </div>
+    <div class="coins" id="coinBox">🪙 <span id="coins">0</span></div>
+    <div class="vol-wrap">
+      <button class="icon-btn" id="volBtn" title="볼륨 조절" aria-label="볼륨 조절">🔊</button>
+      <div class="vol-pop hidden" id="volPop">
+        <button class="icon-btn" id="muteBtn" title="음소거" aria-label="음소거">🔊</button>
+        <input type="range" id="vol" min="0" max="100" aria-label="볼륨">
+        <span class="val" id="volVal"></span>
+      </div>
+    </div>
+    <button class="icon-btn" id="themeBtn" title="다크/라이트 모드 전환" aria-label="다크/라이트 모드 전환">🌙</button>
+  </div>
+ </div>
+</header>
+<main>
+  <section id="gacha" class="stage">
+    <div class="machine-area">
+      <div class="machine" id="machine">
+        <div class="dome" id="dome"></div>
+        <div class="body">
+          <div class="coin-slot" id="coinSlot"></div>
+          <button class="knob" id="knob" aria-label="1회 뽑기"></button>
+          <div class="slot"><div class="capsule-mini" id="drop"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="control">
+      <div class="control-head">
+        <h2>캡슐 가챠</h2>
+        <p>코인 1개로 1회, 10개로 10연차를 뽑아요.</p>
+      </div>
+      <div class="actions">
+        <button class="btn" id="pull1">1회 뽑기 (🪙1)</button>
+        <button class="btn" id="pull10">10연차 (🪙10)</button>
+        <button class="btn ghost" id="daily">출석 보상</button>
+      </div>
+      <div class="meters">
+        <div class="meter">
+          <div class="meter-label"><span>SSR 천장</span><span id="pityInfo"></span></div>
+          <div class="pity-bar"><div id="pityBar"></div></div>
+        </div>
+        <div class="meter">
+          <div class="meter-label"><span>도감 수집</span><span id="collectInfo"></span></div>
+          <div class="pity-bar"><div id="collectBar" style="background: var(--accent)"></div></div>
+        </div>
+      </div>
+      <button class="text-btn rate-btn" id="rateBtn">📊 확률표</button>
+    </div>
+  </section>
+
+  <section id="book" class="hidden">
+    <div class="progress"><span id="progText"></span><div class="bar"><div id="progBar"></div></div></div>
+    <div id="bookFilter"></div>
+    <div class="book" id="bookGrid"></div>
+  </section>
+
+  <section id="room" class="hidden">
+    <div class="room-bar">
+      <span>벽지</span><span id="wallPicker" style="display:flex;gap:6px"></span>
+      <button class="btn ghost small" id="roomClear">모두 보관함으로</button>
+    </div>
+    <div class="room" id="roomEl">
+      <div class="wall"><div class="window"></div><div class="frame">🌷</div><div class="shelf s1"></div><div class="shelf s2"></div></div>
+      <div class="floor"><div class="rug"></div></div>
+      <div class="room-empty" id="roomEmpty">아래 보관함에서 굿즈를 눌러 방에 꺼내 보세요!</div>
+      <div id="placed"></div>
+    </div>
+    <div class="room-tools hidden" id="roomTools">
+      <button data-act="smaller">➖ 작게</button>
+      <button data-act="bigger">➕ 크게</button>
+      <button data-act="flip">↔️ 좌우 반전</button>
+      <button data-act="front">⬆️ 맨 앞으로</button>
+      <button data-act="back">⬇️ 맨 뒤로</button>
+      <button data-act="zoom">🔍 크게 보기</button>
+      <button data-act="remove">📦 보관함에 넣기</button>
+    </div>
+    <p class="info">굿즈를 드래그해서 옮기고, 눌러서 선택하면 크기·방향을 바꿀 수 있어요.</p>
+    <h3 class="tray-title">보관함 <span id="trayCount"></span></h3>
+    <div id="trayFilter"></div>
+    <div class="tray" id="tray"></div>
+  </section>
+</main>
+
+<footer>
+  「치이카와」의 모든 캐릭터와 굿즈 이미지의 저작권은 원작자 <b>나가노(ナガノ)</b>와 ⓒnagano / chiikawa committee에 있습니다.<br>
+  공식과 무관한 <b>비영리 취미 팬 게임</b>으로, 어떠한 영리 목적도 없습니다. 굿즈 이미지 출처: ちいかわマーケット(chiikawamarket.jp)
+  · <button id="openCopyright">저작권 안내 자세히</button>
+</footer>
+
+<!-- 개봉 연출 -->
+<div class="overlay hidden" id="overlay">
+  <canvas id="fx"></canvas>
+  <div class="flashlayer" id="flash"></div>
+  <div class="rays" id="rays"></div>
+  <div class="magic" id="magic"></div>
+  <div class="banner" id="banner"></div>
+  <div class="counter" id="counter"></div>
+  <button class="skip" id="skip">전부 스킵 ⏭</button>
+  <div class="big-capsule" id="bigCap"><div class="half top"></div><div class="half bottom"></div></div>
+  <div class="tap-hint" id="tapHint">캡슐을 눌러 열기!</div>
+  <div id="revealSlot"></div>
+  <div class="next-row hidden" id="nextRow"><button class="btn" id="next">다음 ▶</button></div>
+  <div class="summary hidden" id="summary">
+    <h2 id="summaryTitle">뽑기 결과</h2>
+    <div class="results" id="results"></div>
+    <button class="btn" id="close">확인</button>
+  </div>
+</div>
+
+<!-- 저작권 안내 -->
+<div class="modal hidden" id="copyright">
+  <div class="sheet">
+    <h2>📄 저작권 안내</h2>
+    <ul>
+      <li>「치이카와(ちいかわ)」의 모든 캐릭터, 굿즈 디자인, 상품 이미지의 저작권·상표권은 원작자 <b>나가노(ナガノ)</b>와 <b>ⓒnagano / chiikawa committee</b>에 있습니다.</li>
+      <li>이 게임은 공식과 관계없는 <b>팬 제작물</b>이며, 원작자·제작위원회·판매처의 승인이나 후원을 받지 않았습니다.</li>
+      <li>순수한 <b>취미 활동</b>으로 만든 비영리 페이지입니다. 광고, 판매, 후원 요청 등 어떠한 영리 목적도 없습니다.</li>
+      <li>굿즈 이미지는 공식 온라인 상점 <b>ちいかわマーケット(chiikawamarket.jp)</b>의 상품 페이지에 공개된 이미지입니다. 도감의 각 굿즈에서 원본 상품 페이지로 이동할 수 있으니, 마음에 드는 굿즈는 공식 상점에서 만나 보세요.</li>
+      <li>게임 속 확률·등급·코인은 가상의 것으로, 실제 상품의 판매나 추첨과 관계없습니다. 상품명은 원래 일본어 이름을 한국어로 옮긴 것입니다.</li>
+      <li>권리자의 요청이 있으면 해당 이미지를 즉시 제거합니다.</li>
+    </ul>
+    <button class="btn" id="closeCopyright">닫기</button>
+  </div>
+</div>
+
+<!-- 확률표 -->
+<div class="modal hidden" id="rates">
+  <div class="sheet">
+    <h2>📊 확률표</h2>
+    <div id="rateBody"></div>
+    <button class="btn" id="closeRates">닫기</button>
+  </div>
+</div>
+
+<!-- 확대 보기 -->
+<div class="modal hidden" id="zoom">
+  <div class="zoom-sheet">
+    <button class="icon-btn zoom-close" id="zoomClose" aria-label="닫기">✕</button>
+    <div class="zoom-frame" id="zoomFrame"><img id="zoomImg" alt="" referrerpolicy="no-referrer"></div>
+    <div class="zoom-info" id="zoomInfo"></div>
+  </div>
+</div>
+
+<script>
+// 굿즈 데이터 — 이미지는 공식 상점(chiikawamarket.jp) CDN 원본 주소를 그대로 사용합니다.
+// 각 항목: [JAN 코드(상품 페이지 주소), 이미지 경로, 이름]
+const CDN = "https://cdn.shopify.com/s/files/1/0626/7142/1681/";
+const SHOP = "https://chiikawamarket.jp/products/";
+const SERIES = { basic: "베이직", halloween: "🎃 할로윈", rakko: "🦦 랏코", plush: "🧸 인형" };
+const ITEMS = [];
+function add(series, rarity, art, list) {
+  for (const [jan, img, name] of list) ITEMS.push({ id: jan, jan, img, name, series, rarity, art });
+}
+
+// ── 베이직 ──
+add("basic", "N", "🌸", [
+  ["4901770054131", "files/4901770054131_2.jpg", "봉봉드롭 씰 미니 (치이카와)"],
+  ["4901770054148", "files/4901770054148_2.jpg", "봉봉드롭 씰 미니 (하치와레)"],
+  ["4901770054155", "files/4901770054155_2.jpg", "봉봉드롭 씰 미니 (우사기)"],
+  ["4901770054179", "files/4901770054179_2.jpg", "봉봉드롭 씰 미니 (모몽가)"],
+  ["4571609414582", "files/4571609414582_1_747fd9dc-1aa7-4602-b91b-c991fc2c2cb7.jpg", "ANA 스티커 (하치와레)"],
+  ["4571609414599", "files/4571609414599_1_611cc49a-5971-4dca-8c2d-bfbbfc139e31.jpg", "ANA 스티커 (우사기)"],
+  ["4571609389248", "files/4571609389248_1.jpg", "치이카와 파크 방수 스티커 (쿠리만쥬)"],
+  ["4571609389255", "files/4571609389255_1.jpg", "치이카와 파크 방수 스티커 (시샤)"],
+]);
+add("basic", "R", "🧸", [
+  ["4571609409946", "files/4571609409946_1.jpg", "라멘 부타 점원 마스코트 (쿠리만쥬)"],
+  ["4571609409939", "files/4571609409939_1_4c459399-2bcd-43cb-99bf-ed7b3b9731ab.jpg", "라멘 부타 점원 마스코트 (모몽가)"],
+  ["4571609409953", "files/4571609409953_1.jpg", "라멘 부타 점원 마스코트 (시샤)"],
+  ["4571609414452", "files/4571609414452_1_778d9897-3982-43da-8d72-e6ff75df7c44.jpg", "ANA 마스코트 (치이카와)"],
+  ["4571609414469", "files/4571609414469_1_243241d8-3a74-4729-ae09-776cb2ab16d3.jpg", "ANA 마스코트 (하치와레)"],
+  ["4571609414476", "files/4571609414476_1_c075c8b0-fd35-4cc7-934c-736ae1d68830.jpg", "ANA 마스코트 (우사기)"],
+]);
+add("basic", "SR", "🎄", [
+  ["4571609335115", "files/4571609335115_1.jpg", "치이카와 베이커리 샌드 마스코트 (치이카와)"],
+  ["4571609335122", "files/4571609335122_1.jpg", "치이카와 베이커리 샌드 마스코트 (하치와레)"],
+  ["4571609414117", "files/4571609414117_1.jpg", "크리스마스 요정 마스코트 (치이카와)"],
+  ["4571609414124", "files/4571609414124_1_3a32232e-dbc0-4aa0-be32-c7cae3772e90.jpg", "크리스마스 요정 마스코트 (하치와레)"],
+  ["4571609414131", "files/4571609414131_1_1deafaf9-27dd-475d-b6b7-887c807d1d45.jpg", "크리스마스 요정 마스코트 (우사기)"],
+]);
+
+// ── 할로윈 ──
+add("halloween", "N", "👻", [
+  ["4547855392769", "files/4547855392769_1.jpg", "할로윈이다 미니 손수건 (하치와레)"],
+  ["4547855392776", "files/4547855392776_1.jpg", "할로윈이다 미니 손수건 (치이카와)"],
+  ["4547855392783", "files/4547855392783_1.jpg", "할로윈이다 미니 손수건 (우사기)"],
+  ["4571609411086", "files/4571609411086_1.jpg", "유령 축광 스티커 (하치와레)"],
+  ["4571609411079", "files/4571609411079_1.jpg", "유령 축광 스티커 (치이카와)"],
+  ["4571609411093", "files/4571609411093_1_6df5ea0b-00a6-4b43-b6f5-7314fd8cb56a.jpg", "유령 축광 스티커 (우사기)"],
+]);
+add("halloween", "R", "🎃", [
+  ["4571609411055", "files/4571609411055_1.jpg", "유령 볼록 아크릴 마그넷 (하치와레)"],
+  ["4571609411048", "files/4571609411048_1.jpg", "유령 볼록 아크릴 마그넷 (치이카와)"],
+  ["4571609411062", "files/4571609411062_1.jpg", "유령 볼록 아크릴 마그넷 (우사기)"],
+  ["4571609411031", "files/4571609411031_1_d6f25467-ae95-416c-ba77-66613a25a4d8.jpg", "유령 3연 축광 아크릴 참"],
+]);
+add("halloween", "SR", "🦇", [
+  ["4571609406846", "files/4571609406846_1.jpg", "미니 마스코트 키링 (유령 치이카와)"],
+  ["4571609406853", "files/4571609406853_1.jpg", "미니 마스코트 키링 (유령 하치와레)"],
+  ["4571609406860", "files/4571609406860_1.jpg", "미니 마스코트 키링 (유령 우사기)"],
+  ["4571609402701", "files/4571609402701_1_e49bc5dd-3302-40f9-8518-9c1386caf52a.jpg", "다 같이 가장 마스코트 (간호사 치이카와)"],
+  ["4571609402718", "files/4571609402718_1.jpg", "다 같이 가장 마스코트 (간호사 하치와레)"],
+  ["4571609402725", "files/4571609402725_1.jpg", "다 같이 가장 마스코트 (의사 우사기)"],
+  ["4571609402732", "files/4571609402732_1.jpg", "다 같이 가장 마스코트 (박쥐 모몽가)"],
+  ["4571609402749", "files/4571609402749_1.jpg", "다 같이 가장 마스코트 (풋콩 쿠리만쥬)"],
+  ["4571609402756", "files/4571609402756_1.jpg", "다 같이 가장 마스코트 (바포메트 시샤)"],
+  ["4571609402763", "files/4571609402763_1.jpg", "다 같이 가장 마스코트 (딸기찹쌀떡 랏코)"],
+  ["4571609402770", "files/4571609402770_1_c09169c1-18a8-4162-9942-467b6c7f9a5f.jpg", "다 같이 가장 마스코트 (박쥐 헌책방)"],
+]);
+
+// ── 랏코 컬렉션 ──
+add("rakko", "R", "🦦", [
+  ["4571609409960", "files/4571609409960_1.jpg", "라멘 부타 점원 마스코트 (랏코)"],
+  ["4571609414513", "files/4571609414513_1_ea860448-b225-4551-b416-53c4063dbe7c.jpg", "ANA 마스코트 (랏코)"],
+]);
+add("rakko", "SR", "🦦", [
+  ["4571609362746", "files/4571609362746_1.jpg", "치이카와 파크 미니 마스코트 키링 (랏코)"],
+  ["4571609335405", "files/4571609335405_1.jpg", "치이카와 베이커리 코로네 마스코트 (랏코)"],
+  ["4571609408451", "files/4571609408451_1_4090f0b0-07e4-4119-b231-85ce2a6ab8cc.jpg", "스웨트 랏코 마스코트"],
+  ["4582662964648", "files/4582662964648_1.jpg", "치이카와 레스토랑 홀 담당 마스코트 (랏코)"],
+  ["4582662970427", "files/4582662970427_1.jpg", "초 마지컬 치이카와 차지 마스코트 (랏코)"],
+  ["4571609399308", "files/4571609399308_1_pre.jpg", "영화 치이카와 마스코트 (랏코)"],
+  ["4582662946934", "files/4582662946934_1.jpg", "치이카와 베이커리 빵 같은 쫀득 마스코트 (랏코)"],
+  ["4571609359210", "files/4571609359210_1.jpg", "치이카와 파크 푸와코로 마스코트 (랏코)"],
+  ["4582662984561", "products/4582662984561_1.jpg", "천사♡악마 마스코트 (훌륭한 천사 랏코)"],
+]);
+add("rakko", "SSR", "🦦", [
+  ["4582662984219", "files/4582662984219_1.jpg", "인형 S (랏코)"],
+  ["4571609359135", "files/4571609359135_1.jpg", "치이카와 파크 푸와코로 인형 S (랏코)"],
+  ["4571609391951", "files/4571609391951_1.jpg", "살짝 포즈 인형 (랏코)"],
+]);
+
+// ── 인형 ──
+add("plush", "SR", "🧸", [
+  ["4571609359074", "files/4571609359074_1.jpg", "푸와코로 인형 S (치이카와)"],
+  ["4571609359081", "files/4571609359081_1.jpg", "푸와코로 인형 S (하치와레)"],
+  ["4571609359098", "files/4571609359098_1.jpg", "푸와코로 인형 S (우사기)"],
+  ["4571609359104", "files/4571609359104_1.jpg", "푸와코로 인형 S (모몽가)"],
+  ["4571609359111", "files/4571609359111_1.jpg", "푸와코로 인형 S (쿠리만쥬)"],
+  ["4571609359128", "files/4571609359128_1.jpg", "푸와코로 인형 S (시샤)"],
+  ["4571609359142", "files/4571609359142_1.jpg", "푸와코로 인형 S (헌책방)"],
+  ["4571609391890", "files/4571609391890_1.jpg", "살짝 포즈 인형 (치이카와)"],
+  ["4571609391906", "files/4571609391906_1.jpg", "살짝 포즈 인형 (하치와레)"],
+  ["4571609391913", "files/4571609391913_1.jpg", "살짝 포즈 인형 (우사기)"],
+  ["4571609391920", "files/4571609391920_1.jpg", "살짝 포즈 인형 (모몽가)"],
+  ["4571609391937", "files/4571609391937_1.jpg", "살짝 포즈 인형 (쿠리만쥬)"],
+  ["4571609391944", "files/4571609391944_1.jpg", "살짝 포즈 인형 (시샤)"],
+  ["4571609391968", "files/4571609391968_1.jpg", "살짝 포즈 인형 (헌책방)"],
+  ["4571609371304", "files/4571609371304_1.jpg", "엉덩이 인형 (우사기)"],
+]);
+add("plush", "SSR", "🎀", [
+  ["4571609414537", "files/4571609414537_1_2635ba87-c441-43c7-ad88-ed0c28b27a20.jpg", "ANA 인형 (치이카와)"],
+  ["4571609414544", "files/4571609414544_1_406ef404-3582-4008-92bd-88ff7d19df16.jpg", "ANA 인형 (하치와레)"],
+  ["4571609414551", "files/4571609414551_1_4bfabc6d-481d-4f9d-938d-ead65f8c65f6.jpg", "ANA 인형 (우사기)"],
+  ["4571609414148", "files/4571609414148_1_c24c0311-2eaf-44a4-bcd6-7c7b1b770518.jpg", "크리스마스 리스 인형"],
+  ["4582662969889", "files/4582662969889_1.jpg", "도쿄 기념품 앉은 인형 (치이카와)"],
+  ["4582662969872", "files/4582662969872_1.jpg", "도쿄 기념품 앉은 인형 (하치와레)"],
+  ["4582662969865", "files/4582662969865_1.jpg", "도쿄 기념품 앉은 인형 (우사기)"],
+  ["4582662969858", "files/4582662969858_1.jpg", "도쿄 기념품 앉은 인형 (모몽가)"],
+  ["4582662969841", "files/4582662969841_1.jpg", "도쿄 기념품 앉은 인형 (쿠리만쥬)"],
+  ["4582662969834", "files/4582662969834_1.jpg", "도쿄 기념품 앉은 인형 (시샤)"],
+  ["4582662949843", "files/4582662949843_1.jpg", "도쿄 기념품 앉은 인형 (헌책방)"],
+  ["4582662917200", "products/4582662917200_1.jpg", "치이카와랜드 삐뽀뽀 인형 (치이카와)"],
+  ["4582662917217", "products/4582662917217_1.jpg", "치이카와랜드 삐뽀뽀 인형 (하치와레)"],
+  ["4582662917224", "products/4582662917224_1.jpg", "치이카와랜드 삐뽀뽀 인형 (우사기)"],
+  ["4582662913660", "products/4582662913660_1.jpg", "드라이브다! 부이 인형 (하치와레)"],
+]);
+
+// ── 카니 ──
+add("basic", "N", "🦀", [
+  ["4550432141230", "files/4550432141230.jpg", "에너젤 샤프펜슬 (카니)"],
+]);
+add("basic", "R", "🦀", [
+  ["4582662975583", "files/4582662975583_1.jpg", "카니 가장 마스코트 (치이카와)"],
+  ["4582662975576", "files/4582662975576_1.jpg", "카니 가장 마스코트 (하치와레)"],
+  ["4582662975552", "files/4582662975552_1.jpg", "카니 가장 마스코트 (모몽가)"],
+]);
+
+// ── 극장판 캐릭터 ──
+add("movie", "R", "🧜", [
+  ["4571609405276", "files/4571609405276_1.jpg", "영화 치이카와 세이렌 3연 아크릴 참"],
+  ["4571609405238", "files/4571609405238_1.jpg", "영화 치이카와 수면 아크릴 키홀더 (세이렌과 인어)"],
+  ["4571609405245", "files/4571609405245_1.jpg", "영화 치이카와 수면 아크릴 키홀더 (시마지로)"],
+]);
+add("movie", "SR", "🧜", [
+  ["4571609399209", "files/4571609399209_1_pre.jpg", "영화 치이카와 마스코트 (세이렌/보통 얼굴)"],
+  ["4571609399216", "files/4571609399216_1_pre.jpg", "영화 치이카와 마스코트 (세이렌/매운 얼굴)"],
+  ["4571609399346", "files/4571609399346_1_pre.jpg", "영화 치이카와 마스코트 (인어)"],
+  ["4571609399230", "files/4571609399230_1_pre.jpg", "영화 치이카와 마스코트 (시마지로)"],
+  ["4571609399322", "files/4571609399322_1_pre.jpg", "영화 치이카와 마스코트 (히토하)"],
+  ["4571609399339", "files/4571609399339_1_pre.jpg", "영화 치이카와 마스코트 (후타바)"],
+  ["4571609403340", "files/4571609403340_1_pre.jpg", "영화 치이카와 데스크톱 걸이 인형 (세이렌)"],
+  ["4571609403357", "files/4571609403357_1_pre.jpg", "영화 치이카와 데스크톱 걸이 인형 (시마지로)"],
+]);
+add("movie", "SSR", "🧜", [
+  ["4571609399193", "files/4571609399193_1_pre.jpg", "영화 치이카와 조금 큰 세이렌 인형"],
+  ["4571609405900", "files/36c93af051bf2c0f34b6cf96c59b5407.jpg", "영화 치이카와 세이렌 인형 L"],
+  ["4571609404385", "files/4571609404385_0.jpg", "영화 치이카와 세이렌 큰 소프비 피규어"],
+  ["4571609399223", "files/4571609399223_1_pre.jpg", "영화 치이카와 듬직하게 앉은 시마지로 인형"],
+]);
+
+// ── 서브 캐릭터 ──
+add("sub", "N", "⭐", [
+  ["4571609370451", "files/4571609370451_1.jpg", "치이카와 파크 테마 아크릴 키홀더 (오데와 고블린)"],
+]);
+add("sub", "R", "⭐", [
+  ["4571609403227", "files/4571609403227_1.jpg", "마스코트 (카부토무시)"],
+  ["4573256437822", "files/4573256437822_1.jpg", "치이카와 파크 피규어 키홀더 (카부토무시)"],
+  ["4582662956506", "files/4582662956506_1.jpg", "도쿄 기념품 3연 아크릴 참 (카부토무시)"],
+  ["4573256437891", "files/4573256437891_1.jpg", "치이카와 파크 피규어 키홀더 (오데)"],
+  ["4573256437884", "files/4573256437884_1.jpg", "치이카와 파크 피규어 키홀더 (고블린)"],
+  ["4573256437815", "files/4573256437815_1.jpg", "치이카와 파크 피규어 키홀더 (아노코)"],
+  ["4573256437846", "files/4573256437846_1.jpg", "치이카와 파크 피규어 키홀더 (데카츠요)"],
+  ["4573256437853", "files/4573256437853_1.jpg", "치이카와 파크 피규어 키홀더 (포셰트 갑옷 씨)"],
+  ["4573256437907", "files/4573256437907_1.jpg", "치이카와 파크 피규어 키홀더 (무챠우맨)"],
+  ["4573256437877", "files/4573256437877_1.jpg", "치이카와 파크 피규어 키홀더 (키메라)"],
+  ["4571609351641", "files/4571609351641_1.jpg", "치이카와 파크 마스코트 (후구)"],
+]);
+add("sub", "SR", "⭐", [
+  ["4582662970410", "files/4582662970410_1.jpg", "초 마지컬 치이카와 차지 마스코트 (카부토무시)"],
+  ["4582662950894", "files/4582662950894_1.jpg", "치이카와 베이커리 빵 같은 쫀득 마스코트 (카부토무시)"],
+  ["4571609362777", "files/4571609362777_1.jpg", "치이카와 파크 미니 마스코트 키링 (카부토무시)"],
+  ["4571609398721", "files/4571609398721_1.jpg", "치이카와 파크 미니 마스코트 키링 (오데)"],
+  ["4571609398738", "files/4571609398738_1.jpg", "치이카와 파크 미니 마스코트 키링 (고블린)"],
+  ["4571609398752", "files/4571609398752_1.jpg", "치이카와 파크 미니 마스코트 키링 (라멘 갑옷 씨)"],
+  ["4571609398745", "files/4571609398745_1.jpg", "치이카와 파크 미니 마스코트 키링 (포셰트 갑옷 씨)"],
+  ["4571609362760", "files/4571609362760_1.jpg", "치이카와 파크 미니 마스코트 키링 (무챠우맨)"],
+  ["4571609351344", "files/4571609351344_1.jpg", "오데 미모치 인형"],
+  ["4571609380504", "files/4571609380504_1.jpg", "오데 오뚝이 인형"],
+  ["4571609342069", "files/4571609342069_1.jpg", "초 마지컬 치이카와 아노코 마스코트"],
+  ["4582662985988", "products/4582662985988_1.jpg", "데스크톱 걸이 인형 (아노코)"],
+  ["4571609345497", "files/4571609345497_1.jpg", "라멘 갑옷 씨 마스코트"],
+  ["4571609392019", "files/4571609392019_1.jpg", "마지컬 치이카와 차지 마스코트 (포셰트 갑옷 씨)"],
+  ["4582662920279", "files/4582662920279_1_28ea8dac-4bde-42e4-a227-1c8a40864cff.jpg", "키메라 마스코트"],
+]);
+add("sub", "SSR", "⭐", [
+  ["4582662913578", "files/4582662913578_1_19e0c890-b43a-4782-a1b9-cbc5c5fcdaee.jpg", "\"오데\" 인형"],
+  ["4571609351610", "files/4571609351610_1_474dda8e-a30c-409b-b3aa-95c02f942937.jpg", "치이카와 파크 폭신 축 늘어진 인형 (오데)"],
+  ["4571609351603", "files/4571609351603_1_cb808b0a-126a-47d8-8dc5-c072d6ddd36e.jpg", "치이카와 파크 폭신 축 늘어진 인형 (무챠우맨)"],
+  ["4571609413769", "files/4571609413769.jpg", "마지컬 치이카와 폭신 쫀득 안는 인형 (아노코)"],
+  ["4571609351658", "files/4571609351658_1.jpg", "치이카와 파크 인형 S (후구)"],
+  ["4571609362562", "files/4571609362562_1_4b79ea04-b365-4b5b-89ef-dd682f2b15f8.jpg", "치이카와 파크 안는 인형 쿠션 (카부토무시)"],
+]);
+
+// ── 분류: 캐릭터 · 종류 · 컬렉션 ──
+// 캐릭터는 이름 끝 괄호 안(없으면 이름 전체)에서 찾습니다. 컬렉션 이름에도 들어가는 "치이카와"는 다른 캐릭터가 없을 때만 고르고,
+// 헌책방이나 여러 캐릭터가 함께 나오는 굿즈는 "기타"로 둡니다.
+const CHARACTER_GROUPS = [
+  ["메인", ["치이카와", "하치와레", "우사기", "랏코", "카니", "모몽가", "쿠리만쥬", "시샤"]],
+  ["극장판", ["세이렌", "인어", "시마지로", "히토하", "후타바"]],
+  ["서브", ["카부토무시", "오데", "고블린", "아노코", "데카츠요", "갑옷 씨", "후구", "무챠우맨", "키메라"]],
+];
+const CHARACTERS = [...CHARACTER_GROUPS.flatMap(g => g[1]), "기타"];
+const TYPE_RULES = [
+  [/스티커|씰/, "스티커"], [/손수건/, "손수건"], [/마그넷/, "마그넷"], [/참/, "아크릴 참"], [/샤프/, "문구"],
+  [/키홀더/, "키홀더"], [/피규어/, "피규어"], [/키링/, "마스코트 키링"], [/인형/, "인형"], [/마스코트/, "마스코트"],
+];
+// 위에서부터 먼저 맞는 규칙이 컬렉션(출시 시리즈 주제)이 됩니다.
+const COLL_RULES = [
+  [/ANA/, "ANA 콜라보"], [/할로윈|유령/, "할로윈"], [/다 같이 가장/, "다 같이 가장"], [/카니 가장/, "카니 가장"],
+  [/라멘 부타/, "라멘 부타"], [/베이커리/, "치이카와 베이커리"], [/크리스마스/, "크리스마스"], [/레스토랑/, "치이카와 레스토랑"],
+  [/마지컬/, "마지컬 치이카와"], [/영화/, "영화 치이카와"], [/데스크톱/, "데스크톱 걸이 인형"], [/천사♡악마/, "천사♡악마"], [/도쿄 기념품/, "도쿄 기념품"],
+  [/치이카와랜드/, "치이카와랜드"], [/봉봉드롭/, "봉봉드롭 씰"], [/푸와코로/, "푸와코로"], [/치이카와 파크/, "치이카와 파크"],
+  [/살짝 포즈/, "살짝 포즈"], [/드라이브/, "드라이브다!"], [/스웨트/, "스웨트"], [/엉덩이/, "엉덩이 인형"],
+];
+const TYPES = [...new Set(TYPE_RULES.map(r => r[1]))];
+const COLLECTIONS = [...COLL_RULES.map(r => r[1]), "기본 라인"];
+for (const it of ITEMS) {
+  const paren = (it.name.match(/\(([^)]*)\)\s*$/) || [])[1];
+  const src = paren || it.name.replace(/치이카와(랜드| 파크| 베이커리| 레스토랑)/g, "");
+  it.char = CHARACTERS.find(c => c !== "기타" && c !== "치이카와" && src.includes(c)) || (src.includes("치이카와") ? "치이카와" : "기타");
+  it.type = (TYPE_RULES.find(([re]) => re.test(it.name)) || [, "기타"])[1];
+  it.coll = (COLL_RULES.find(([re]) => re.test(it.name)) || [, "기본 라인"])[1];
+}
+
+const RATES = { N: 60, R: 28, SR: 10, SSR: 2 };
+const RARITIES = ["N", "R", "SR", "SSR"];
+const RAR_COLOR = { N: "#b8c4cc", R: "#6fb7ff", SR: "#c48bff", SSR: "#ffbf3c" };
+const PITY = 50;
+const START_COINS = 20, DAILY_COINS = 10;
+
+const STORE_KEY = "goods-gacha-v3";
+// v2는 숫자 id(1~25)로 저장했으므로 JAN 코드로 옮겨줍니다.
+const V2_IDS = ["4901770054131","4901770054148","4901770054155","4901770054179","4571609414582","4571609414599","4571609389248","4571609389255","4571609409946","4571609409939","4571609409960","4571609409953","4571609414452","4571609414469","4571609414476","4571609335115","4571609335122","4571609414117","4571609414124","4571609414131","4571609362746","4571609414537","4571609414544","4571609414551","4571609414148"];
+let state = load();
+
+function load() {
+  const fresh = { coins: START_COINS, owned: {}, pity: 0, lastDaily: "", total: 0, muted: false, volume: 0.7, theme: "", room: [], wall: "pink" };
+  try {
+    const v3 = localStorage.getItem(STORE_KEY);
+    if (v3) return { ...fresh, ...JSON.parse(v3) };
+    const v2 = JSON.parse(localStorage.getItem("goods-gacha-v2") || "null");
+    if (v2) {
+      const owned = {};
+      for (const [k, n] of Object.entries(v2.owned || {})) if (V2_IDS[k - 1]) owned[V2_IDS[k - 1]] = n;
+      return { ...fresh, ...v2, owned };
+    }
+  } catch {}
+  return fresh;
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {}
+}
+
+// ── 사운드 (WebAudio로 합성, 외부 파일 없음) ──
+let audio, master;
+function ac() {
+  if (state.muted || state.volume <= 0) return null;
+  try {
+    if (!audio) {
+      audio = new (window.AudioContext || window.webkitAudioContext)();
+      master = audio.createGain();
+      master.connect(audio.destination);
+    }
+    master.gain.value = state.volume;
+    return audio;
+  } catch { return null; }
+}
+function tone(freq, dur = 0.12, type = "sine", vol = 0.15, delay = 0, opts = {}) {
+  const a = ac(); if (!a) return;
+  const t = a.currentTime + delay;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  if (opts.to) o.frequency.exponentialRampToValueAtTime(opts.to, t + dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + (opts.attack || 0.005));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  let node = o;
+  if (opts.lp) { const f = a.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = opts.lp; o.connect(f); node = f; }
+  node.connect(g).connect(master); o.start(t); o.stop(t + dur + 0.05);
+}
+function noise(dur = 0.3, vol = 0.2, delay = 0, hp = 4000) {
+  const a = ac(); if (!a) return;
+  const t = a.currentTime + delay;
+  const buf = a.createBuffer(1, a.sampleRate * dur, a.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  s.buffer = buf; f.type = "highpass"; f.frequency.value = hp;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f).connect(g).connect(master); s.start(t);
+}
+// 종소리: 기음 + 비정수배 배음
+const bell = (f, delay, vol = .1) => { tone(f, 1.2, "sine", vol, delay); tone(f * 2.76, .6, "sine", vol * .4, delay); tone(f * 5.4, .3, "sine", vol * .2, delay); };
+const SFX = {
+  coin: () => { tone(988, .08, "square", .08); tone(1319, .2, "square", .08, .08); },
+  crank: () => { for (let i = 0; i < 6; i++) tone(180 + i * 20, .05, "triangle", .12, i * .1); },
+  drop: () => { tone(140, .2, "sine", .3); tone(90, .25, "sine", .25, .12); },
+  wobble: () => tone(400 + Math.random() * 200, .06, "triangle", .08),
+  open: r => {
+    tone(660, .15, "triangle", .15);
+    if (r === "R") [587, 784].forEach((f, i) => tone(f, .3, "triangle", .12, .1 + i * .09));
+  },
+  // SR: 신비로운 상승 쉬머 → 맑은 종소리 아르페지오
+  srTease: () => { tone(300, .8, "sine", .08, 0, { to: 1200, attack: .3 }); noise(.7, .04, 0, 6000); },
+  srReveal: () => {
+    [659, 831, 988, 1319, 1661].forEach((f, i) => bell(f, i * .08, .09));
+    noise(.8, .05, .05, 8000);
+    [1976, 2637, 2217, 3136].forEach((f, i) => tone(f, .25, "sine", .04, .5 + i * .07));
+  },
+  // SSR: 낮은 굉음 + 심장 박동 → 심벌 + 금관 팡파레 + 반짝임
+  ssrTease: () => {
+    tone(45, 1.5, "sawtooth", .18, 0, { to: 220, attack: .4, lp: 500 });
+    [0, .35, .7, 1.0, 1.25].forEach(d => { tone(70, .18, "sine", .45, d, { to: 40 }); });
+  },
+  ssrReveal: () => {
+    noise(1.6, .3, 0, 3000);
+    tone(55, .6, "sine", .5, 0, { to: 30 });
+    const brass = (fs, d, dur) => fs.forEach(f => tone(f, dur, "sawtooth", .07, d, { lp: 2400, attack: .02 }));
+    brass([523, 659, 784], .05, .14);
+    brass([523, 659, 784], .22, .14);
+    brass([523, 659, 784], .39, .14);
+    brass([698, 880, 1047], .56, .5);
+    brass([784, 988, 1175, 1568], 1.05, 1.3);
+    noise(1.2, .15, 1.05, 5000);
+    for (let i = 0; i < 10; i++) tone(1500 + Math.random() * 2500, .2, "sine", .04, 1.3 + i * .09);
+  },
+};
+
+// ── 뽑기 로직 ──
+function rollRarity(minRarity) {
+  if (state.pity >= PITY - 1) return "SSR";
+  const pool = RARITIES.filter(r => RARITIES.indexOf(r) >= RARITIES.indexOf(minRarity || "N"));
+  const sum = pool.reduce((s, r) => s + RATES[r], 0);
+  let x = Math.random() * sum;
+  for (const r of pool) { if ((x -= RATES[r]) < 0) return r; }
+  return pool[pool.length - 1];
+}
+function pullOne(minRarity) {
+  const rarity = rollRarity(minRarity);
+  const pool = ITEMS.filter(i => i.rarity === rarity);
+  const item = pool[Math.floor(Math.random() * pool.length)];
+  state.pity = rarity === "SSR" ? 0 : state.pity + 1;
+  state.total++;
+  const isNew = !state.owned[item.id];
+  state.owned[item.id] = (state.owned[item.id] || 0) + 1;
+  return { item, isNew };
+}
+const rank = r => RARITIES.indexOf(r);
+
+// 이미지: 공식 상점 원본 주소를 먼저 쓰고(GitHub Pages·로컬), 외부 이미지가 막힌 곳(claude.ai)에서는
+// 페이지와 함께 올린 img/<JAN>.jpg(fetch-images.ps1로 받음), 그것도 없으면 onFail(이모지 등)로 대신합니다.
+function setImg(img, item, onFail) {
+  img.onerror = () => { img.onerror = onFail; img.src = `img/${item.jan}.jpg`; };
+  img.src = `${CDN}${item.img}?width=600`;
+}
+
+function itemEl(item, opts = {}) {
+  const el = document.createElement("div");
+  el.className = `item ${item.rarity}` + (opts.isNew ? " new" : "") + (opts.locked ? " locked" : "");
+  el.style.setProperty("--c", `var(--${item.rarity})`);
+  const art = document.createElement("div");
+  art.className = "art";
+  const img = new Image();
+  img.alt = opts.locked ? "" : item.name;
+  img.referrerPolicy = "no-referrer";
+  setImg(img, item, () => { art.textContent = item.art; });
+  art.appendChild(img);
+  el.appendChild(art);
+  el.insertAdjacentHTML("beforeend", `
+    <div class="rar">${item.rarity}</div>
+    <div class="ser">${item.coll}</div>
+    <div class="nm">${opts.locked ? "???" : item.name}</div>
+    ${opts.count ? `<div class="cnt">×${opts.count}</div>` : ""}
+    ${opts.link && !opts.locked ? `<a href="${SHOP}${item.jan}" target="_blank" rel="noopener">공식 상품 페이지 ↗</a>` : ""}`);
+  if (rank(item.rarity) >= 2 && !opts.locked) el.classList.add("shine");
+  return el;
+}
+
+// ── 머신 안 캡슐 ──
+const BALL_COLORS = ["#ff8fab", "#6fb7ff", "#ffe066", "#c48bff", "#8ce0b5", "#ffb46b"];
+const dome = document.getElementById("dome");
+for (let i = 0; i < 18; i++) {
+  const b = document.createElement("div");
+  b.className = "ball";
+  const c = BALL_COLORS[i % BALL_COLORS.length];
+  b.style.background = `linear-gradient(${c} 50%, #fff 50%)`;
+  b.style.left = `${10 + (i % 6) * 36 + (Math.floor(i / 6) % 2) * 14}px`;
+  b.style.bottom = `${6 + Math.floor(i / 6) * 34}px`;
+  b.style.animationDelay = `${(i % 5) * 0.03}s`;
+  dome.appendChild(b);
+}
+
+const $ = id => document.getElementById(id);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+let busy = false;
+
+async function doPull(n) {
+  if (busy || state.coins < n) return;
+  busy = true;
+  state.coins -= n;
+  const results = [];
+  for (let i = 0; i < n; i++) results.push(pullOne());
+  // 10연차 보장: SR 이상이 없으면 마지막을 SR 이상으로 교체
+  if (n === 10 && !results.some(r => rank(r.item.rarity) >= 2)) {
+    const last = results.pop();
+    state.owned[last.item.id]--;
+    if (!state.owned[last.item.id]) delete state.owned[last.item.id];
+    state.total--;
+    state.pity--;
+    results.push(pullOne("SR"));
+  }
+  save();
+  render();
+  await machineSequence(results);
+  await openSequence(results);
+  busy = false;
+}
+
+async function machineSequence(results) {
+  const best = RARITIES[Math.max(...results.map(r => rank(r.item.rarity)))];
+  // 코인 투입
+  const from = $("pull" + (results.length === 10 ? "10" : "1")).getBoundingClientRect();
+  const to = $("coinSlot").getBoundingClientRect();
+  const coin = document.createElement("div");
+  coin.className = "flying-coin"; coin.textContent = "🪙";
+  coin.style.left = from.left + from.width / 2 - 13 + "px"; coin.style.top = from.top + "px";
+  document.body.appendChild(coin);
+  $("coinBox").classList.add("bump");
+  SFX.coin();
+  await wait(20);
+  coin.style.transform = `translate(${to.left - from.left - from.width / 2 + 28}px, ${to.top - from.top - 10}px) scale(.6)`;
+  await wait(500);
+  coin.remove(); $("coinBox").classList.remove("bump");
+  // 손잡이 + 흔들림 (등급이 높으면 더 세게, 머신이 빛남 — 확정 연출)
+  const m = $("machine");
+  m.classList.add("shake");
+  if (rank(best) >= 3) m.classList.add("hard");
+  if (rank(best) >= 2 && Math.random() < 0.7) m.classList.add("glow-" + best);
+  $("knob").classList.add("turn");
+  SFX.crank();
+  await wait(800);
+  m.classList.remove("shake", "hard");
+  $("drop").style.background = `linear-gradient(${RAR_COLOR[best]} 50%, #fff 50%)`;
+  $("drop").classList.add("go");
+  SFX.drop();
+  await wait(700);
+  $("knob").classList.remove("turn");
+  $("drop").classList.remove("go");
+  m.classList.remove("glow-SR", "glow-SSR");
+}
+
+// ── 파티클 ──
+const fx = $("fx"), ctx = fx.getContext("2d");
+let parts = [], fxRunning = false;
+const SSR_COLORS = ["#ff8fab", "#ffbf3c", "#8ce0b5", "#6fb7ff", "#c48bff", "#fff"];
+function sizeFx() { fx.width = innerWidth; fx.height = innerHeight; }
+function startFx() { if (!fxRunning) { fxRunning = true; requestAnimationFrame(tick); } }
+// 한 점에서 터지는 폭발
+function burst(rarity, x = fx.width / 2, y = fx.height / 2, n) {
+  n = n || { N: 20, R: 40, SR: 90, SSR: 160 }[rarity];
+  const colors = rarity === "SSR" ? SSR_COLORS : [RAR_COLOR[rarity], "#fff"];
+  const power = rarity === "SSR" ? 12 : 7;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * power;
+    parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, g: .15,
+      life: 60 + Math.random() * 60, c: colors[i % colors.length], r: 2 + Math.random() * 5, kind: Math.random() < .4 ? "star" : "dot" });
+  }
+  startFx();
+}
+// 위에서 내려오는 비 (SR: 별가루, SSR: 색종이)
+function rain(kind, colors, n) {
+  for (let i = 0; i < n; i++) {
+    parts.push({ x: Math.random() * fx.width, y: -20 - Math.random() * fx.height * .6, vx: (Math.random() - .5) * 1.5, vy: 1 + Math.random() * 2.5,
+      g: kind === "confetti" ? .02 : .01, life: 220 + Math.random() * 80, c: colors[i % colors.length], r: 3 + Math.random() * 4,
+      kind, rot: Math.random() * 6, vr: (Math.random() - .5) * .3 });
+  }
+  startFx();
+}
+function tick() {
+  ctx.clearRect(0, 0, fx.width, fx.height);
+  parts = parts.filter(p => p.life-- > 0 && p.y < fx.height + 40);
+  for (const p of parts) {
+    p.x += p.vx; p.y += p.vy; p.vy += p.g; p.vx *= .99;
+    ctx.globalAlpha = Math.min(1, p.life / 40);
+    ctx.fillStyle = p.c;
+    if (p.kind === "star") { ctx.font = `${p.r * 4}px sans-serif`; ctx.fillText("✦", p.x, p.y); }
+    else if (p.kind === "confetti") {
+      p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.scale(1, Math.cos(p.rot * 2));
+      ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); ctx.restore();
+    }
+    else { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); }
+  }
+  ctx.globalAlpha = 1;
+  if (parts.length) requestAnimationFrame(tick); else fxRunning = false;
+}
+
+// ── 등급별 특수 연출 ──
+const ov = $("overlay");
+function flash() { const f = $("flash"); f.classList.remove("go"); void f.offsetWidth; f.classList.add("go"); }
+function showBanner(r) {
+  const b = $("banner");
+  b.className = "banner";
+  if (r !== "SR" && r !== "SSR") return;
+  b.textContent = r === "SSR" ? "★ SSR ★" : "✦ SUPER RARE ✦";
+  void b.offsetWidth;
+  b.className = `banner ${r} show`;
+}
+let fireworkTimer;
+function resetFx() {
+  ov.classList.remove("sr-mode", "ssr-mode", "dark", "quake");
+  $("magic").classList.remove("on");
+  $("rays").classList.remove("on", "rainbow");
+  $("banner").className = "banner";
+  clearInterval(fireworkTimer);
+}
+// 개봉 전 예고 연출
+async function tease(r, cap) {
+  if (r === "SR") {
+    ov.classList.add("sr-mode");
+    $("magic").classList.add("on");
+    cap.classList.add("float");
+    SFX.srTease();
+    await wait(800);
+  } else if (r === "SSR") {
+    ov.classList.add("dark");
+    cap.classList.add("charging");
+    SFX.ssrTease();
+    await wait(1400);
+    cap.classList.remove("charging");
+  }
+}
+// 개봉 순간 연출
+function revealFx(r) {
+  if (r === "SSR") {
+    ov.classList.remove("dark");
+    ov.classList.add("ssr-mode", "quake");
+    flash();
+    $("rays").classList.add("on", "rainbow");
+    SFX.ssrReveal();
+    burst("SSR");
+    let n = 0;
+    fireworkTimer = setInterval(() => {
+      burst("SSR", fx.width * (.15 + Math.random() * .7), fx.height * (.1 + Math.random() * .45), 60);
+      if (++n >= 8) clearInterval(fireworkTimer);
+    }, 280);
+    rain("confetti", SSR_COLORS, 140);
+  } else if (r === "SR") {
+    $("rays").style.setProperty("--rc", "#c48bff55");
+    $("rays").classList.add("on");
+    SFX.srReveal();
+    burst("SR");
+    rain("star", ["#e3c8ff", "#ffffff", "#c48bff"], 60);
+  } else {
+    $("rays").style.setProperty("--rc", r === "N" ? "#ffffff22" : RAR_COLOR[r] + "55");
+    $("rays").classList.add("on");
+    SFX.open(r);
+    burst(r);
+  }
+  showBanner(r);
+}
+
+// ── 개봉 시퀀스 ──
+let skipAll = false;
+function waitClick(el) { return new Promise(res => { const h = () => { el.removeEventListener("click", h); res(); }; el.addEventListener("click", h); if (skipAll) h(); }); }
+
+async function openSequence(results) {
+  skipAll = false;
+  const cap = $("bigCap");
+  sizeFx();
+  ov.classList.remove("hidden");
+  $("summary").classList.add("hidden");
+  $("skip").classList.toggle("hidden", results.length === 1);
+  for (let i = 0; i < results.length && !skipAll; i++) {
+    const { item, isNew } = results[i];
+    const r = item.rarity;
+    resetFx();
+    $("counter").textContent = results.length > 1 ? `${i + 1} / ${results.length}` : "";
+    $("revealSlot").innerHTML = "";
+    $("nextRow").classList.add("hidden");
+    cap.className = "big-capsule wobble" + (r === "SSR" ? " SSR hard" : "");
+    // 캡슐 색은 등급 힌트 (N은 랜덤 색으로 위장)
+    cap.style.setProperty("--cap", r === "N" ? BALL_COLORS[Math.floor(Math.random() * 3)] : RAR_COLOR[r]);
+    $("tapHint").classList.remove("hidden");
+    const wob = setInterval(SFX.wobble, 250);
+    await waitClick(cap);
+    clearInterval(wob);
+    if (skipAll) break;
+    $("tapHint").classList.add("hidden");
+    cap.classList.remove("wobble", "hard");
+    await tease(r, cap);
+    if (skipAll) break;
+    cap.classList.remove("float");
+    cap.classList.add("open");
+    revealFx(r);
+    const card = itemEl(item, { isNew });
+    card.classList.add("reveal-card", "pop");
+    $("revealSlot").appendChild(card);
+    await wait(r === "SSR" ? 1200 : 500);
+    if (results.length > 1 && i < results.length - 1) {
+      $("nextRow").classList.remove("hidden");
+      await waitClick($("next"));
+    } else {
+      await wait(r === "SSR" ? 1500 : 900);
+    }
+  }
+  // 결과 요약
+  resetFx();
+  $("revealSlot").innerHTML = "";
+  $("nextRow").classList.add("hidden");
+  $("tapHint").classList.add("hidden");
+  $("skip").classList.add("hidden");
+  $("counter").textContent = "";
+  cap.className = "big-capsule hidden";
+  const best = RARITIES[Math.max(...results.map(r => rank(r.item.rarity)))];
+  $("rays").style.setProperty("--rc", RAR_COLOR[best] + "44");
+  $("rays").classList.add("on");
+  if (best === "SSR") $("rays").classList.add("rainbow");
+  if (skipAll) {
+    skipAll = false;
+    if (best === "SSR") { SFX.ssrReveal(); burst("SSR"); rain("confetti", SSR_COLORS, 100); }
+    else if (best === "SR") { SFX.srReveal(); burst("SR"); rain("star", ["#e3c8ff", "#fff", "#c48bff"], 40); }
+    else { SFX.open(best); burst(best); }
+  }
+  const box = $("results");
+  box.innerHTML = "";
+  results.forEach((res, i) => {
+    const el = itemEl(res.item, { isNew: res.isNew });
+    el.style.animationDelay = `${i * 0.06}s`;
+    box.appendChild(el);
+  });
+  $("summaryTitle").textContent = best === "SSR" ? "✨ SSR 획득! ✨" : best === "SR" ? "💜 SR 획득!" : "뽑기 결과";
+  $("summary").classList.remove("hidden");
+  await waitClick($("close"));
+  ov.classList.add("hidden");
+  resetFx();
+}
+
+// ── 화면 갱신 ──
+// ── 공통 필터 컴포넌트 (도감 · 마이룸 보관함) ──
+// 같은 줄 안에서는 여러 개 선택 시 "또는", 줄끼리는 "그리고"로 걸러냅니다.
+const FILTER_DIMS = [
+  { key: "rarity", label: "등급", values: RARITIES, color: v => `var(--${v})` },
+  { key: "char", label: "캐릭터", values: CHARACTERS, groups: [...CHARACTER_GROUPS, ["", ["기타"]]] },
+  { key: "type", label: "종류", values: TYPES },
+  { key: "coll", label: "컬렉션", values: COLLECTIONS },
+];
+function makeFilter(opts = {}) {
+  return { sel: Object.fromEntries(FILTER_DIMS.map(d => [d.key, new Set()])), ownedOnly: false, open: true, ...opts };
+}
+function applyFilter(items, f) {
+  return items.filter(i => FILTER_DIMS.every(d => !f.sel[d.key].size || f.sel[d.key].has(i[d.key])) && (!f.ownedOnly || state.owned[i.id]));
+}
+// base: 이 화면에서 걸러낼 전체 목록 (칩 옆 개수와 보이는 칩을 정하는 데 씀)
+function renderFilter(container, f, base, onChange, opts = {}) {
+  container.innerHTML = "";
+  container.className = "filter-panel";
+  const active = FILTER_DIMS.reduce((n, d) => n + f.sel[d.key].size, 0) + (f.ownedOnly ? 1 : 0);
+  const head = document.createElement("div");
+  head.className = "fhead";
+  head.innerHTML = `<b>🔍 필터</b><span>${active ? `${active}개 선택` : "전체 보기"} · ${applyFilter(base, f).length}개</span>`;
+  const toggle = document.createElement("button");
+  toggle.className = "chip";
+  toggle.textContent = f.open ? "접기 ▴" : "펼치기 ▾";
+  toggle.onclick = () => { f.open = !f.open; onChange(); };
+  head.appendChild(toggle);
+  container.appendChild(head);
+  if (!f.open) return;
+
+  for (const d of FILTER_DIMS) {
+    const row = document.createElement("div");
+    row.className = "frow";
+    row.innerHTML = `<span class="flabel">${d.label}</span>`;
+    const chips = document.createElement("div");
+    chips.className = "chips";
+    const chip = (text, on, click, color) => {
+      const b = document.createElement("button");
+      b.className = "chip" + (on ? " on" : "");
+      b.innerHTML = text;
+      if (color) b.style.setProperty("--c", color);
+      b.onclick = () => { click(); onChange(); };
+      chips.appendChild(b);
+    };
+    const set = f.sel[d.key];
+    chip("전체", !set.size, () => set.clear());
+    for (const [group, values] of d.groups || [["", d.values]]) {
+      const shown = values.filter(v => base.some(i => i[d.key] === v));
+      if (group && shown.length) chips.insertAdjacentHTML("beforeend", `<span class="cgroup">${group}</span>`);
+      for (const v of shown) {
+        const n = base.filter(i => i[d.key] === v).length;
+        chip(`${v}<span class="n">${n}</span>`, set.has(v), () => set.has(v) ? set.delete(v) : set.add(v), d.color && d.color(v));
+      }
+    }
+    row.appendChild(chips);
+    container.appendChild(row);
+  }
+  const foot = document.createElement("div");
+  foot.className = "ffoot";
+  if (opts.ownedToggle) {
+    const lab = document.createElement("label");
+    lab.innerHTML = `<input type="checkbox" ${f.ownedOnly ? "checked" : ""}> 뽑은 굿즈만 보기`;
+    lab.querySelector("input").onchange = e => { f.ownedOnly = e.target.checked; onChange(); };
+    foot.appendChild(lab);
+  } else foot.appendChild(document.createElement("span"));
+  const reset = document.createElement("button");
+  reset.className = "chip";
+  reset.textContent = "↺ 초기화";
+  reset.onclick = () => { FILTER_DIMS.forEach(d => f.sel[d.key].clear()); f.ownedOnly = false; onChange(); };
+  foot.appendChild(reset);
+  container.appendChild(foot);
+}
+const bookFilter = makeFilter();
+const trayFilter = makeFilter({ open: false });
+
+function render() {
+  $("coins").textContent = state.coins;
+  $("pull1").disabled = state.coins < 1;
+  $("pull10").disabled = state.coins < 10;
+  const v = state.muted ? 0 : state.volume;
+  const volIcon = v <= 0 ? "🔇" : v < 0.4 ? "🔈" : v < 0.75 ? "🔉" : "🔊";
+  $("volBtn").textContent = volIcon;
+  $("muteBtn").textContent = volIcon;
+  $("vol").value = Math.round(state.volume * 100);
+  $("volVal").textContent = state.muted ? "음소거" : Math.round(state.volume * 100);
+  applyTheme();
+  const today = new Date().toDateString();
+  const daily = $("daily");
+  daily.disabled = state.lastDaily === today;
+  daily.textContent = daily.disabled ? "출석 완료 ✓" : `출석 보상 (+🪙${DAILY_COINS})`;
+  $("pityInfo").textContent = `${state.pity} / ${PITY} · ${PITY - state.pity}회 남음`;
+  $("pityBar").style.width = `${state.pity / PITY * 100}%`;
+  const collected = ITEMS.filter(i => state.owned[i.id]).length;
+  $("collectInfo").textContent = `${collected} / ${ITEMS.length}`;
+  $("collectBar").style.width = `${collected / ITEMS.length * 100}%`;
+  $("logDot").classList.toggle("hidden", state.seenLog === UPDATE_LOG[0].ver);
+
+  const ownedCount = ITEMS.filter(i => state.owned[i.id]).length;
+  $("progText").textContent = `수집 ${ownedCount} / ${ITEMS.length}`;
+  $("progBar").style.width = `${ownedCount / ITEMS.length * 100}%`;
+
+  renderFilter($("bookFilter"), bookFilter, ITEMS, render, { ownedToggle: true });
+  const grid = $("bookGrid");
+  grid.innerHTML = "";
+  applyFilter(ITEMS, bookFilter)
+    .sort((a, b) => rank(b.rarity) - rank(a.rarity))
+    .forEach(i => {
+      const n = state.owned[i.id];
+      const el = itemEl(i, { locked: !n, count: n, link: true });
+      if (n) el.onclick = e => { if (!e.target.closest("a")) openZoom(i); };
+      grid.appendChild(el);
+    });
+  renderRoom();
+}
+
+// ── 업데이트 로그 (새 항목은 맨 위에 추가) ──
+const UPDATE_LOG = [
+  { ver: "v1.6", date: "2026-10-29", notes: [
+    "📱 모바일 · 태블릿 · 🖥️ 데스크톱 반응형 화면",
+    "가챠 머신과 버튼을 화면 가운데로, 데스크톱은 머신 옆에 조작 패널",
+    "SSR 천장 · 도감 수집 진행도 막대",
+  ] },
+  { ver: "v1.5", date: "2026-10-29", notes: [
+    "🧜 극장판 캐릭터 추가: 세이렌 · 인어 · 시마지로 · 히토하 · 후타바",
+    "⭐ 서브 캐릭터 추가: 카부토무시 · 오데 · 고블린 · 아노코 · 데카츠요 · 갑옷 씨 · 후구 · 무챠우맨 · 키메라",
+    "굿즈 48종 추가 (총 136종), 키홀더 · 피규어 종류 추가",
+    "캐릭터 필터를 메인 · 극장판 · 서브 묶음으로 정리",
+  ] },
+  { ver: "v1.4", date: "2026-10-29", notes: [
+    "도감·마이룸 보관함 공통 필터: 등급 · 캐릭터 · 종류 · 컬렉션",
+    "카니 샤프펜슬, 카니 가장 마스코트 3종 추가 (총 88종)",
+    "확률표 버튼과 업데이트 로그를 상단 메뉴로 정리",
+  ] },
+  { ver: "v1.3", date: "2026-10-29", notes: [
+    "마이룸: 뽑은 굿즈를 방에 자유롭게 배치, 벽지 5종",
+    "도감 굿즈 확대 보기",
+    "볼륨 조절, 다크/라이트 모드",
+  ] },
+  { ver: "v1.2", date: "2026-10-29", notes: [
+    "🎃 할로윈 · 🦦 랏코 컬렉션 · 🧸 인형 굿즈 대량 추가",
+    "SR 마법진 연출, SSR 암전·불꽃놀이·팡파레 연출",
+  ] },
+  { ver: "v1.1", date: "2026-10-29", notes: [
+    "공식 상점 상품 이미지 적용",
+    "코인 투입 · 캡슐 개봉 연출, 효과음, 10연차 스킵",
+    "저작권 안내 추가",
+  ] },
+  { ver: "v1.0", date: "2026-10-29", notes: [
+    "가챠 머신 · 1회/10연차 · SSR 천장 · 도감 · 출석 보상",
+  ] },
+];
+function renderLog() {
+  $("logPop").innerHTML = "<h3>📢 업데이트 로그</h3>" + UPDATE_LOG.map((e, i) => `
+    <div class="log-entry">
+      <span class="ver">${e.ver}</span><span class="date">${e.date}</span>${i === 0 ? '<span class="tag">NEW</span>' : ""}
+      <ul>${e.notes.map(n => `<li>${n}</li>`).join("")}</ul>
+    </div>`).join("");
+}
+
+// ── 확률표 ──
+function renderRates() {
+  const rows = RARITIES.slice().reverse().map(r => {
+    const n = ITEMS.filter(i => i.rarity === r).length;
+    return `<tr><td style="color:var(--${r})">${r}</td><td>${RATES[r]}%</td><td>${n}종</td><td>${(RATES[r] / n).toFixed(3)}%</td></tr>`;
+  }).join("");
+  const lists = RARITIES.slice().reverse().map(r => {
+    const pool = ITEMS.filter(i => i.rarity === r);
+    return `<details><summary style="color:var(--${r})">${r} 굿즈 목록 (${pool.length}종, 각 ${(RATES[r] / pool.length).toFixed(3)}%)</summary>
+      <ul>${pool.map(i => `<li>${i.name}</li>`).join("")}</ul></details>`;
+  }).join("");
+  $("rateBody").innerHTML = `
+    <table class="rate-table">
+      <tr><th>등급</th><th>등급 확률</th><th>굿즈 수</th><th>굿즈 1종 확률</th></tr>${rows}
+    </table>
+    <ul>
+      <li>같은 등급 안의 굿즈는 모두 같은 확률로 나와요.</li>
+      <li><b>10연차</b>는 SR 이상 1개가 확정이에요.</li>
+      <li><b>천장</b>: ${PITY}회 안에 SSR이 한 번도 안 나오면 ${PITY}번째는 SSR 확정이에요. SSR이 나오면 다시 0부터 세요.</li>
+    </ul>
+    <div style="font-size:13px">현재 천장 진행도: ${state.pity} / ${PITY}</div>
+    <div class="pity-bar"><div style="width:${state.pity / PITY * 100}%"></div></div>
+    <div class="rate-list" style="margin-top:12px">${lists}</div>`;
+}
+
+// ── 테마 ──
+const darkQuery = matchMedia("(prefers-color-scheme: dark)");
+function isDark() { return state.theme ? state.theme === "dark" : darkQuery.matches; }
+function applyTheme() {
+  if (state.theme) document.documentElement.dataset.theme = state.theme;
+  else delete document.documentElement.dataset.theme;
+  $("themeBtn").textContent = isDark() ? "☀️" : "🌙";
+}
+darkQuery.addEventListener("change", applyTheme);
+
+// ── 확대 보기 ──
+function openZoom(item) {
+  const frame = $("zoomFrame");
+  frame.classList.remove("zoomed");
+  setImg($("zoomImg"), item, () => {});
+  $("zoomImg").alt = item.name;
+  $("zoomInfo").innerHTML = `
+    <div class="rar" style="color:var(--${item.rarity})">${item.rarity}</div>
+    <div style="color:var(--muted);font-size:13px">${item.char} · ${item.type} · ${item.coll}</div>
+    <div><b>${item.name}</b> ×${state.owned[item.id] || 0}</div>
+    <a href="${SHOP}${item.jan}" target="_blank" rel="noopener">공식 상품 페이지 ↗</a>`;
+  $("zoom").classList.remove("hidden");
+}
+$("zoomFrame").onclick = e => {
+  const f = $("zoomFrame"), r = f.getBoundingClientRect();
+  $("zoomImg").style.transformOrigin = `${(e.clientX - r.left) / r.width * 100}% ${(e.clientY - r.top) / r.height * 100}%`;
+  f.classList.toggle("zoomed");
+};
+$("zoomClose").onclick = () => $("zoom").classList.add("hidden");
+$("zoom").onclick = e => { if (e.target.id === "zoom") $("zoom").classList.add("hidden"); };
+
+// ── 마이룸 ──
+const WALLS = { pink: "#ffd3df", mint: "#c6ecdb", sky: "#cbe1fb", cream: "#ffe6b5", night: "#463f66" };
+let selected = null;
+const byId = id => ITEMS.find(i => i.id === id);
+function placedCount(id) { return state.room.filter(p => p.id === id).length; }
+function topZ() { return state.room.reduce((m, p) => Math.max(m, p.z), 0); }
+
+function renderRoom() {
+  const room = $("roomEl");
+  room.dataset.wall = state.wall;
+  state.room = state.room.filter(p => byId(p.id));
+  const wp = $("wallPicker");
+  wp.innerHTML = "";
+  for (const [k, c] of Object.entries(WALLS)) {
+    const s = document.createElement("button");
+    s.className = "swatch" + (state.wall === k ? " on" : "");
+    s.style.background = c;
+    s.title = k;
+    s.onclick = () => { state.wall = k; save(); renderRoom(); };
+    wp.appendChild(s);
+  }
+  const layer = $("placed");
+  layer.innerHTML = "";
+  for (const p of state.room) {
+    const item = byId(p.id);
+    const el = document.createElement("div");
+    el.className = "placed" + (p.flip ? " flip" : "") + (selected === p.uid ? " sel" : "");
+    el.style.cssText = `left:${p.x}%;top:${p.y}%;width:${p.s}%;z-index:${p.z}`;
+    const img = new Image();
+    img.referrerPolicy = "no-referrer";
+    img.alt = item.name;
+    img.draggable = false;
+    setImg(img, item, () => { el.textContent = item.art; el.style.fontSize = "40px"; });
+    el.appendChild(img);
+    el.addEventListener("pointerdown", e => startDrag(e, p, el));
+    el.addEventListener("dblclick", () => openZoom(item));
+    layer.appendChild(el);
+  }
+  $("roomEmpty").classList.toggle("hidden", state.room.length > 0);
+  $("roomTools").classList.toggle("hidden", !state.room.some(p => p.uid === selected));
+
+  const tray = $("tray");
+  tray.innerHTML = "";
+  const owned = ITEMS.filter(i => state.owned[i.id]).sort((a, b) => rank(b.rarity) - rank(a.rarity));
+  renderFilter($("trayFilter"), trayFilter, owned, renderRoom);
+  let left = 0;
+  for (const i of owned) left += state.owned[i.id] - placedCount(i.id);
+  for (const i of applyFilter(owned, trayFilter)) {
+    const rest = state.owned[i.id] - placedCount(i.id);
+    const el = itemEl(i, { count: rest });
+    if (rest <= 0) el.classList.add("used");
+    else el.onclick = () => {
+      const p = { uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), id: i.id,
+        x: 30 + Math.random() * 40, y: 78 + Math.random() * 12, s: i.rarity === "SSR" ? 20 : 15, flip: false, z: topZ() + 1 };
+      state.room.push(p);
+      selected = p.uid;
+      save(); renderRoom();
+      $("roomEl").scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+    tray.appendChild(el);
+  }
+  $("trayCount").textContent = owned.length ? `(꺼낼 수 있는 굿즈 ${left}개)` : "— 가챠에서 굿즈를 뽑아 오세요!";
+}
+
+function startDrag(e, p, el) {
+  e.preventDefault();
+  e.stopPropagation();
+  const rect = $("roomEl").getBoundingClientRect();
+  const ox = e.clientX - (rect.left + p.x / 100 * rect.width);
+  const oy = e.clientY - (rect.top + p.y / 100 * rect.height);
+  selected = p.uid;
+  p.z = topZ() + 1;
+  el.style.zIndex = p.z;
+  document.querySelectorAll(".placed.sel").forEach(x => x.classList.remove("sel"));
+  el.classList.add("sel");
+  $("roomTools").classList.remove("hidden");
+  el.setPointerCapture(e.pointerId);
+  const move = ev => {
+    p.x = Math.min(100, Math.max(0, (ev.clientX - ox - rect.left) / rect.width * 100));
+    p.y = Math.min(100, Math.max(8, (ev.clientY - oy - rect.top) / rect.height * 100));
+    el.style.left = p.x + "%";
+    el.style.top = p.y + "%";
+  };
+  const up = () => {
+    el.removeEventListener("pointermove", move);
+    el.removeEventListener("pointerup", up);
+    el.removeEventListener("pointercancel", up);
+    save();
+  };
+  el.addEventListener("pointermove", move);
+  el.addEventListener("pointerup", up);
+  el.addEventListener("pointercancel", up);
+}
+$("roomEl").addEventListener("pointerdown", e => {
+  if (e.target.closest(".placed")) return;
+  selected = null;
+  renderRoom();
+});
+$("roomTools").onclick = e => {
+  const act = e.target.closest("button")?.dataset.act;
+  const p = state.room.find(x => x.uid === selected);
+  if (!act || !p) return;
+  if (act === "smaller") p.s = Math.max(6, p.s - 3);
+  if (act === "bigger") p.s = Math.min(45, p.s + 3);
+  if (act === "flip") p.flip = !p.flip;
+  if (act === "front") p.z = topZ() + 1;
+  if (act === "back") { const min = state.room.reduce((m, q) => Math.min(m, q.z), Infinity); p.z = min - 1; }
+  if (act === "zoom") return openZoom(byId(p.id));
+  if (act === "remove") { state.room = state.room.filter(x => x !== p); selected = null; }
+  save(); renderRoom();
+};
+// 실수 방지: 한 번 누르면 확인 문구로 바뀌고, 3초 안에 한 번 더 눌러야 비웁니다.
+let clearArmed = null;
+$("roomClear").onclick = () => {
+  const b = $("roomClear");
+  if (!state.room.length) return;
+  if (!clearArmed) {
+    b.textContent = "한 번 더 누르면 모두 넣어요";
+    clearArmed = setTimeout(() => { clearArmed = null; b.textContent = "모두 보관함으로"; }, 3000);
+    return;
+  }
+  clearTimeout(clearArmed); clearArmed = null;
+  b.textContent = "모두 보관함으로";
+  state.room = []; selected = null;
+  save(); renderRoom();
+};
+
+$("pull1").onclick = () => doPull(1);
+$("knob").onclick = () => doPull(1);
+$("pull10").onclick = () => doPull(10);
+$("skip").onclick = () => { skipAll = true; $("bigCap").click(); $("next").click(); };
+$("daily").onclick = () => {
+  state.coins += DAILY_COINS;
+  state.lastDaily = new Date().toDateString();
+  SFX.coin();
+  save(); render();
+};
+$("volBtn").onclick = e => { e.stopPropagation(); $("logPop").classList.add("hidden"); $("volPop").classList.toggle("hidden"); };
+$("volPop").onclick = e => e.stopPropagation();
+document.addEventListener("click", () => { $("volPop").classList.add("hidden"); $("logPop").classList.add("hidden"); });
+$("logBtn").onclick = e => {
+  e.stopPropagation();
+  $("volPop").classList.add("hidden");
+  renderLog();
+  $("logPop").classList.toggle("hidden");
+  state.seenLog = UPDATE_LOG[0].ver;
+  save(); render();
+};
+$("logPop").onclick = e => e.stopPropagation();
+$("rateBtn").onclick = () => { renderRates(); $("rates").classList.remove("hidden"); };
+$("closeRates").onclick = () => $("rates").classList.add("hidden");
+$("rates").onclick = e => { if (e.target.id === "rates") $("rates").classList.add("hidden"); };
+$("vol").oninput = () => { state.volume = $("vol").value / 100; state.muted = false; render(); };
+$("vol").onchange = () => { save(); SFX.coin(); };
+$("muteBtn").onclick = () => { state.muted = !state.muted; save(); render(); SFX.coin(); };
+$("themeBtn").onclick = () => { state.theme = isDark() ? "light" : "dark"; save(); applyTheme(); };
+$("openCopyright").onclick = () => $("copyright").classList.remove("hidden");
+$("closeCopyright").onclick = () => $("copyright").classList.add("hidden");
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
+  document.querySelectorAll("main > section").forEach(s => s.classList.toggle("hidden", s.id !== b.dataset.tab));
+});
+addEventListener("resize", sizeFx);
+// 가챠 화면을 메뉴바 아래 남은 높이의 가운데에 두기 위해 메뉴바 높이를 CSS에 알려줌
+function syncGnb() { document.documentElement.style.setProperty("--gnb-h", document.querySelector(".gnb").offsetHeight + "px"); }
+addEventListener("resize", syncGnb);
+syncGnb();
+
+render();
+</script>
+</body>
+</html>

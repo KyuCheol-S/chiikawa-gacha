@@ -1,0 +1,4 @@
+# 공식 상품 이미지 사본은 저장소에 올리지 않음 (claude.ai 게시용으로만 fetch-images.ps1로 받음)
+img/
+# build-publish.ps1이 만드는 claude.ai 게시용 파일
+publish/
