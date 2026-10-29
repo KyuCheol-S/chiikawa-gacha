@@ -294,11 +294,18 @@
   .room .shelf.s1 { top: 26%; }
   .room .shelf.s2 { top: 48%; }
   .room .rug { position: absolute; left: 22%; top: 22%; width: 56%; height: 62%; border-radius: 50%; background: repeating-radial-gradient(#ffb3c6 0 8%, #ffcad6 8% 16%); opacity: .9; }
-  .placed { position: absolute; transform: translate(-50%, -100%); cursor: grab; touch-action: none; mix-blend-mode: multiply; }
+  .placed { position: absolute; transform: translate(-50%, -100%); cursor: grab; touch-action: none; }
   .placed:active { cursor: grabbing; }
-  .placed img { display: block; width: 100%; pointer-events: none; -webkit-user-drag: none; }
-  .placed.flip img { transform: scaleX(-1); }
+  .placed img { display: block; width: 100%; pointer-events: none; -webkit-user-drag: none; filter: drop-shadow(0 6px 5px #00000030); transition: opacity .2s; }
   .placed.sel { outline: 2px dashed var(--accent-dark); outline-offset: 3px; border-radius: 6px; }
+  /* 선택한 굿즈의 손잡이: 점선 바깥 모서리 */
+  .ph { position: absolute; top: -20px; width: 30px; height: 30px; border-radius: 50%; border: 0; padding: 0; display: none; place-items: center;
+    background: #fff; color: #4a3b40; font-size: 15px; line-height: 1; cursor: pointer; box-shadow: 0 2px 6px #0004; touch-action: none; z-index: 2; }
+  .placed.sel .ph { display: grid; }
+  .ph-rot { left: -20px; cursor: grab; }
+  .ph-del { right: -20px; }
+  .ph-del:hover { background: #ffe1e6; }
+  .ph:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 2px; }
   .room-empty { position: absolute; inset: 0; display: grid; place-items: center; color: #9b8a90; font-size: 14px; pointer-events: none; text-align: center; padding: 16px; }
   .room-tools { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 10px 0 4px; }
   .room-tools button { border: 0; background: var(--panel); color: var(--ink); border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px var(--shadow); }
@@ -478,6 +485,8 @@
       <button data-act="smaller">➖ 작게</button>
       <button data-act="bigger">➕ 크게</button>
       <button data-act="flip">↔️ 좌우 반전</button>
+      <button data-act="rotate">⟳ 15° 회전</button>
+      <button data-act="unrotate">↺ 회전 초기화</button>
       <button data-act="front">⬆️ 맨 앞으로</button>
       <button data-act="back">⬇️ 맨 뒤로</button>
       <button data-act="zoom">🔍 크게 보기</button>
@@ -1018,6 +1027,89 @@ function toggleFav(id) {
 function setImg(img, item, onFail) {
   img.onerror = () => { img.onerror = onFail; img.src = `img/${item.jan}.jpg`; };
   img.src = `${CDN}${item.img}?width=600`;
+  // 예약 상품 사진의 빨간 "予約" 모서리 라벨이 있으면 지운 버전으로 바꿔 끼움
+  cleanedUrl(item, false).then(url => { if (url) { img.onerror = null; img.src = url; } });
+}
+
+// ── 이미지 손질 (캔버스) ──
+// 공식 사진을 캔버스에 그려서
+//  · 오른쪽 아래 빨간 "予約" 삼각 라벨이 보이면 흰색으로 덮고
+//  · 마이룸용(cutout)이면 가장자리와 이어진 흰 배경을 투명하게 만듭니다.
+// 손볼 게 없는 카드 이미지는 null을 돌려줘서 원본을 그대로 씁니다. 결과는 굿즈별로 한 번만 만들어 둡니다.
+const cleanCache = new Map();
+function loadForCanvas(item) {
+  return new Promise(res => {
+    const im = new Image();
+    im.crossOrigin = "anonymous";
+    im.onload = () => res(im);
+    im.onerror = () => { const l = new Image(); l.onload = () => res(l); l.onerror = () => res(null); l.src = `img/${item.jan}.jpg`; };
+    im.src = `${CDN}${item.img}?width=600`;
+  });
+}
+function cleanedUrl(item, cutout) {
+  const key = item.id + (cutout ? ":cut" : "");
+  if (!cleanCache.has(key)) {
+    cleanCache.set(key, loadForCanvas(item).then(im => im && processImage(im, cutout)).catch(() => null));
+  }
+  return cleanCache.get(key);
+}
+function processImage(im, cutout) {
+  const w = im.naturalWidth, h = im.naturalHeight;
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(im, 0, 0);
+  // 라벨은 300px 기준 오른쪽·아래 모서리에서 약 70px 크기의 직각삼각형. 먼저 모서리 4점만 읽어 확인
+  const isRed = ([x, y]) => {
+    const q = ctx.getImageData(Math.min(w - 1, x * w / 300 | 0), Math.min(h - 1, y * h / 300 | 0), 1, 1).data;
+    return q[0] > 200 && q[1] < 190 && q[2] < 190 && q[0] - q[1] > 50;
+  };
+  const labeled = [[296, 296], [290, 297], [297, 290], [285, 296]].filter(isRed).length >= 3;
+  if (!labeled && !cutout) return null;
+  const d = ctx.getImageData(0, 0, w, h), p = d.data;
+  const at = (x, y) => (Math.min(h - 1, y | 0) * w + Math.min(w - 1, x | 0)) * 4;
+  if (labeled) {
+    // 라벨 크기는 사진마다 달라서, 아래쪽 줄을 오른쪽 끝부터 훑어 빨간 부분이 끝나는 곳까지 재고 조금 넉넉히 덮음
+    const redAt = k => p[k] > 200 && p[k + 1] < 200 && p[k + 2] < 200 && p[k] - p[k + 1] > 40;
+    let len = 0;
+    for (let x = w - 1; x > w / 2; x--) {
+      if (redAt(at(x, h - 3))) len = w - x;
+      else if (w - x > len + w * 0.03) break;
+    }
+    const t = Math.max(len, 0.2 * w) * 1.08 + 3;
+    for (let y = Math.floor(h - t); y < h; y++) for (let x = Math.floor(w - t); x < w; x++) {
+      if (x - (w - t) + (y - (h - t)) >= t - 2) { const k = at(x, y); p[k] = p[k + 1] = p[k + 2] = 255; }
+    }
+  }
+  if (cutout) {
+    const white = k => p[k] > 244 && p[k + 1] > 244 && p[k + 2] > 244;
+    const seen = new Uint8Array(w * h), stack = [];
+    for (let x = 0; x < w; x++) stack.push(x, (h - 1) * w + x);
+    for (let y = 0; y < h; y++) stack.push(y * w, y * w + w - 1);
+    while (stack.length) {
+      const i = stack.pop();
+      if (seen[i]) continue;
+      seen[i] = 1;
+      const k = i * 4;
+      if (!white(k)) continue;
+      p[k + 3] = 0;
+      const x = i % w;
+      if (x > 0) stack.push(i - 1);
+      if (x < w - 1) stack.push(i + 1);
+      if (i >= w) stack.push(i - w);
+      if (i < w * (h - 1)) stack.push(i + w);
+    }
+    // 투명해진 곳과 맞닿은 밝은 테두리는 반투명하게 해서 흰 테두리가 남지 않게
+    for (let i = 0; i < w * h; i++) {
+      const k = i * 4;
+      if (p[k + 3] === 0) continue;
+      const x = i % w;
+      const edge = (x > 0 && p[k - 1] === 0) || (x < w - 1 && p[k + 7] === 0) || (i >= w && p[k - w * 4 + 3] === 0) || (i < w * (h - 1) && p[k + w * 4 + 3] === 0);
+      if (edge) { const lum = (p[k] + p[k + 1] + p[k + 2]) / 3; if (lum > 205) p[k + 3] = Math.max(40, Math.round(255 * (255 - lum) / 50)); }
+    }
+  }
+  ctx.putImageData(d, 0, 0);
+  return new Promise(res => c.toBlob(b => res(b ? URL.createObjectURL(b) : null), "image/png"));
 }
 
 function itemEl(item, opts = {}) {
@@ -1434,6 +1526,11 @@ function render() {
 
 // ── 업데이트 로그 (새 항목은 맨 위에 추가) ──
 const UPDATE_LOG = [
+  { ver: "v1.9", date: "2026-10-29", notes: [
+    "🏠 마이룸: 굿즈 흰 배경을 지워 불투명하게 배치, 그림자 추가",
+    "선택한 굿즈 모서리에 ⟳ 회전 손잡이(드래그 · 누르면 15°)와 🗑 빼기 버튼",
+    "예약 상품 사진의 빨간 '予約' 모서리 라벨 가리기",
+  ] },
   { ver: "v1.8", date: "2026-10-29", notes: [
     "🪙 코인 자동 충전: 5분마다 1개씩 20개까지, 페이지를 닫아 둔 동안에도 충전",
     "📚 헌책방 굿즈를 카니로 분류, 헌책방 굿즈 7종 추가 (총 186종)",
@@ -1570,14 +1667,40 @@ function renderRoom() {
   for (const p of state.room) {
     const item = byId(p.id);
     const el = document.createElement("div");
-    el.className = "placed" + (p.flip ? " flip" : "") + (selected === p.uid ? " sel" : "");
+    el.className = "placed" + (selected === p.uid ? " sel" : "");
     el.style.cssText = `left:${p.x}%;top:${p.y}%;width:${p.s}%;z-index:${p.z}`;
     const img = new Image();
-    img.referrerPolicy = "no-referrer";
     img.alt = item.name;
     img.draggable = false;
-    setImg(img, item, () => { el.textContent = item.art; el.style.fontSize = "40px"; });
+    img.style.transform = placedTransform(p);
+    img.style.opacity = 0;
+    // 흰 배경을 지운 누끼 이미지가 준비되면 보여주고, 실패하면 원본 사진으로
+    cleanedUrl(item, true).then(url => {
+      img.onload = () => { img.style.opacity = 1; };
+      if (url) img.src = url;
+      else setImg(img, item, () => { el.textContent = item.art; el.style.fontSize = "40px"; });
+    });
     el.appendChild(img);
+    // 선택했을 때만 보이는 손잡이: 왼쪽 위 회전, 오른쪽 위 삭제(보관함으로)
+    const rot = document.createElement("button");
+    rot.className = "ph ph-rot";
+    rot.textContent = "⟳";
+    rot.title = "드래그해서 회전 (누르면 15°)";
+    rot.setAttribute("aria-label", "회전");
+    rot.addEventListener("pointerdown", e => startRotate(e, p, el, img));
+    const del = document.createElement("button");
+    del.className = "ph ph-del";
+    del.textContent = "🗑";
+    del.title = "방에서 빼기 (보관함으로)";
+    del.setAttribute("aria-label", "방에서 빼기");
+    del.addEventListener("pointerdown", e => e.stopPropagation());
+    del.onclick = e => {
+      e.stopPropagation();
+      state.room = state.room.filter(x => x !== p);
+      selected = null;
+      save(); renderRoom();
+    };
+    el.append(rot, del);
     el.addEventListener("pointerdown", e => startDrag(e, p, el));
     el.addEventListener("dblclick", () => openZoom(item));
     layer.appendChild(el);
@@ -1637,6 +1760,38 @@ function startDrag(e, p, el) {
   el.addEventListener("pointerup", up);
   el.addEventListener("pointercancel", up);
 }
+const placedTransform = p => `rotate(${p.rot || 0}deg) scaleX(${p.flip ? -1 : 1})`;
+// 회전 손잡이: 굿즈 중심을 기준으로 끌어서 자유 회전, 0°·90° 근처에서는 살짝 붙고, 끌지 않고 누르면 15°씩
+function startRotate(e, p, el, img) {
+  e.preventDefault();
+  e.stopPropagation();
+  const r = el.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const angle = ev => Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI;
+  const start = angle(e), base = p.rot || 0, sx = e.clientX, sy = e.clientY;
+  let moved = false;
+  const h = e.currentTarget;
+  h.setPointerCapture(e.pointerId);
+  const move = ev => {
+    if (Math.hypot(ev.clientX - sx, ev.clientY - sy) > 4) moved = true;
+    if (!moved) return;
+    let a = ((base + angle(ev) - start) % 360 + 540) % 360 - 180;
+    const snap = Math.round(a / 90) * 90;
+    if (Math.abs(a - snap) < 5) a = snap;
+    p.rot = Math.round(a);
+    img.style.transform = placedTransform(p);
+  };
+  const up = () => {
+    h.removeEventListener("pointermove", move);
+    h.removeEventListener("pointerup", up);
+    h.removeEventListener("pointercancel", up);
+    if (!moved) { p.rot = (((p.rot || 0) + 15 + 180) % 360) - 180; img.style.transform = placedTransform(p); }
+    save();
+  };
+  h.addEventListener("pointermove", move);
+  h.addEventListener("pointerup", up);
+  h.addEventListener("pointercancel", up);
+}
 $("roomEl").addEventListener("pointerdown", e => {
   if (e.target.closest(".placed")) return;
   selected = null;
@@ -1649,6 +1804,8 @@ $("roomTools").onclick = e => {
   if (act === "smaller") p.s = Math.max(6, p.s - 3);
   if (act === "bigger") p.s = Math.min(45, p.s + 3);
   if (act === "flip") p.flip = !p.flip;
+  if (act === "rotate") p.rot = (((p.rot || 0) + 15 + 180) % 360) - 180;
+  if (act === "unrotate") p.rot = 0;
   if (act === "front") p.z = topZ() + 1;
   if (act === "back") { const min = state.room.reduce((m, q) => Math.min(m, q.z), Infinity); p.z = min - 1; }
   if (act === "zoom") return openZoom(byId(p.id));
