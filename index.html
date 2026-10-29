@@ -1367,7 +1367,7 @@ const CUT_TUNING = {
   "4571609397304": { R: 6 },   // 숙취 마스코트 (하치와레): 테두리 없는 흰 말풍선이 배경과 붙어 있어 더 넓은 기준으로
   "4905114958789": false,      // 넥커버 (카니 집게): 사진 배경이 연회색이라 누끼 대신 사진 카드로
 };
-function cutoutBackground(p, w, h, { T = 248, R = 3 } = {}) {
+function cutoutBackground(p, w, h, { T = 251, R = 4 } = {}) {
   const n = w * h;
   const cand = new Uint8Array(n);
   for (let i = 0, k = 0; i < n; i++, k += 4) {
@@ -1431,10 +1431,61 @@ function cutoutBackground(p, w, h, { T = 248, R = 3 } = {}) {
   dist = distanceTo(dil, w, h);
   const out = new Uint8Array(n);
   for (let i = 0; i < n; i++) out[i] = dist[i] > RC ? 0 : 1;  // 1 = 닫기 결과의 바깥
+  // 털 다듬기: 털 결 때문에 생긴 잔가시를 없애려고 모양을 흐렸다가 절반 기준으로 다시 그어 윤곽을 완만하게 만들되,
+  // 밝은 부분(털·천)에만 적용해서 어두운 체인·끈·글자처럼 가는 부분은 그대로 둡니다.
+  const soft = new Float32Array(n);
+  for (let i = 0; i < n; i++) soft[i] = out[i] ? 0 : 1;
+  boxBlur(soft, w, h, Math.max(2, Math.round(5 * S)), 3);
+  for (let i = 0, k = 0; i < n; i++, k += 4) {
+    const light = (p[k] + p[k + 1] + p[k + 2]) / 3 >= 170;
+    if (light) out[i] = soft[i] >= 0.5 ? 0 : 1;
+  }
   dist = distanceTo(out, w, h);                                 // 안쪽 픽셀이 경계에서 얼마나 떨어졌는지
   for (let i = 0; i < n; i++) {
     const a = Math.min(1, Math.max(0, (dist[i] - CH) / FE));
     p[i * 4 + 3] = Math.round(a * 255);
+  }
+  // 굿즈 본체와 떨어진 아주 작은 조각(사진 아래 작은 캡션 글자 부스러기 등)은 지움
+  const seen = new Uint8Array(n), minArea = n * 0.0025;
+  for (let s = 0; s < n; s++) {
+    if (seen[s] || p[s * 4 + 3] < 40) continue;
+    const comp = [s];
+    seen[s] = 1;
+    for (let q = 0; q < comp.length; q++) {
+      const i = comp[q], x = i % w;
+      for (const j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i >= w ? i - w : -1, i < n - w ? i + w : -1]) {
+        if (j >= 0 && !seen[j] && p[j * 4 + 3] >= 40) { seen[j] = 1; comp.push(j); }
+      }
+    }
+    // 캡션 한 줄처럼 납작하고 가로로 긴 작은 조각도 지움 (작은 병아리 같은 통통한 조각은 남김)
+    let x0 = w, x1 = 0, y0 = h, y1 = 0;
+    for (const i of comp) { const x = i % w, y = (i / w) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+    const captionLike = comp.length < n * 0.015 && bh < h * 0.07 && bw > bh * 2.5;
+    if (comp.length < minArea || captionLike) for (const i of comp) p[i * 4 + 3] = 0;
+  }
+}
+// 상자 흐림을 여러 번 겹쳐 가우시안에 가깝게 (가로→세로, 누적합으로 빠르게)
+function boxBlur(a, w, h, r, passes) {
+  const tmp = new Float32Array(a.length);
+  for (let t = 0; t < passes; t++) {
+    for (let y = 0; y < h; y++) {
+      let s = 0;
+      const row = y * w;
+      for (let x = -r; x <= r; x++) s += a[row + Math.min(w - 1, Math.max(0, x))];
+      for (let x = 0; x < w; x++) {
+        tmp[row + x] = s / (2 * r + 1);
+        s += a[row + Math.min(w - 1, x + r + 1)] - a[row + Math.max(0, x - r)];
+      }
+    }
+    for (let x = 0; x < w; x++) {
+      let s = 0;
+      for (let y = -r; y <= r; y++) s += tmp[Math.min(h - 1, Math.max(0, y)) * w + x];
+      for (let y = 0; y < h; y++) {
+        a[y * w + x] = s / (2 * r + 1);
+        s += tmp[Math.min(h - 1, y + r + 1) * w + x] - tmp[Math.max(0, y - r) * w + x];
+      }
+    }
   }
 }
 // src[i] = 1인 픽셀까지의 거리 (2회 스캔 chamfer, 가로·세로 1, 대각선 √2)
@@ -1919,7 +1970,8 @@ const UPDATE_LOG = [
   { ver: "v1.16", date: "2026-10-29", notes: [
     "💌 피드백 보내기: 페이지 아래나 프로필 메뉴에서 버그 · 아이디어 · 칭찬을 제작자에게",
     "🏠 마이룸: 굿즈를 선택하면 그 굿즈만 조작돼요. 다른 굿즈는 눌리지 않고, 같은 굿즈를 한 번 더 누르면 선택 해제",
-    "마이룸 굿즈 테두리를 매끄럽고 고르게: 들쭉날쭉한 경계와 옅은 그림자 테두리 정리 (186종 재검토)",
+    "마이룸 굿즈 테두리를 매끄럽고 고르게: 들쭉날쭉한 경계와 옅은 그림자 테두리 정리, 털 가장자리 잔가시 다듬기 (186종 재검토)",
+    "흰 인형 머리 윗부분이 움푹 파이던 문제 수정 (특히 claude.ai 페이지의 작은 이미지)",
   ] },
   { ver: "v1.15", date: "2026-10-29", notes: [
     "🏠 마이룸 굿즈 배경 지우기 개선: 흰 인형 몸통이 깨지던 문제 수정 (186종 전부 검토)",
@@ -2282,7 +2334,7 @@ $("roomTools").onclick = e => {
 // ── 마이룸 공유 ──
 // 화면의 방을 캡처하는 대신 같은 모양을 캔버스에 다시 그려서, 선택 점선·손잡이 없이 깔끔한 그림을 만듭니다.
 // 벽지·바닥 색은 방에 걸린 CSS 변수에서 읽어 오고, 위치·크기 비율은 CSS의 % 값과 같게 맞춥니다.
-const SHARE_URL = "https://kyucheol-s.github.io/chiikawa-gacha/";
+const SHARE_URL = "https://saeuuu.github.io/chiikawa-gacha/";
 const SHARE_TEXT = "나만의 치이카와 마이룸을 꾸몄어요 🏠 #치이카와 #ちいかわ #치이카와가챠";
 const loadImage = src => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
 
@@ -2767,7 +2819,7 @@ function openFeedback() {
   const p = me();
   $("fbFrom").textContent = `보내는 사람: ${p ? p.name : "익명"}`;
   $("fbSend").disabled = !cloud;
-  fbMsg(cloud ? "" : "이 화면에서는 보낼 수 없어요. GitHub 사이트(kyucheol-s.github.io/chiikawa-gacha)에서 보내 주세요.");
+  fbMsg(cloud ? "" : "이 화면에서는 보낼 수 없어요. GitHub 사이트(saeuuu.github.io/chiikawa-gacha)에서 보내 주세요.");
   $("feedback").classList.remove("hidden");
   setTimeout(() => $("fbText").focus(), 50);
 }
