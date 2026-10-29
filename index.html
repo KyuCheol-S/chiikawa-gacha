@@ -302,9 +302,18 @@
   .ph { position: absolute; top: -20px; width: 30px; height: 30px; border-radius: 50%; border: 0; padding: 0; display: none; place-items: center;
     background: #fff; color: #4a3b40; font-size: 15px; line-height: 1; cursor: pointer; box-shadow: 0 2px 6px #0004; touch-action: none; z-index: 2; }
   .placed.sel .ph { display: grid; }
-  .ph-rot { left: -20px; cursor: grab; }
-  .ph-del { right: -20px; }
-  .ph-del:hover { background: #ffe1e6; }
+  .ph-rot { left: -20px; cursor: grab; color: #4a3b40; }
+  .ph-del { right: -20px; background: #e5484d; color: #fff; }
+  .ph-del:hover { background: #cc2f36; }
+  .ph { width: 34px; height: 34px; top: -22px; }
+  .ph-rot { left: -22px; }
+  .ph-del { right: -22px; }
+
+  /* 크기 슬라이더 */
+  .size-row { flex-basis: 100%; display: flex; align-items: center; gap: 10px; width: 100%; max-width: 520px; margin: 0 auto; padding: 8px 14px; background: var(--panel); border-radius: 12px; box-shadow: 0 2px 6px var(--shadow); font-size: 13px; }
+  .size-row b { white-space: nowrap; }
+  .size-row input { flex: 1; min-width: 0; accent-color: var(--accent); height: 28px; }
+  .size-row output { width: 40px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
   .ph:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 2px; }
   .room-empty { position: absolute; inset: 0; display: grid; place-items: center; color: #9b8a90; font-size: 14px; pointer-events: none; text-align: center; padding: 16px; }
   .room-tools { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 10px 0 4px; }
@@ -482,8 +491,7 @@
       <div id="placed"></div>
     </div>
     <div class="room-tools hidden" id="roomTools">
-      <button data-act="smaller">➖ 작게</button>
-      <button data-act="bigger">➕ 크게</button>
+      <label class="size-row" for="sizeRange"><b>크기</b><span aria-hidden="true">🔹</span><input type="range" id="sizeRange" min="6" max="45" step="1"><span aria-hidden="true">🔷</span><output id="sizeVal"></output></label>
       <button data-act="flip">↔️ 좌우 반전</button>
       <button data-act="rotate">⟳ 15° 회전</button>
       <button data-act="unrotate">↺ 회전 초기화</button>
@@ -1528,7 +1536,8 @@ function render() {
 const UPDATE_LOG = [
   { ver: "v1.9", date: "2026-10-29", notes: [
     "🏠 마이룸: 굿즈 흰 배경을 지워 불투명하게 배치, 그림자 추가",
-    "선택한 굿즈 모서리에 ⟳ 회전 손잡이(드래그 · 누르면 15°)와 🗑 빼기 버튼",
+    "선택한 굿즈 모서리에 ⟳ 회전 손잡이(드래그 · 누르면 15°)와 빨간 휴지통 버튼",
+    "크기 조절을 슬라이더로",
     "예약 상품 사진의 빨간 '予約' 모서리 라벨 가리기",
   ] },
   { ver: "v1.8", date: "2026-10-29", notes: [
@@ -1684,13 +1693,13 @@ function renderRoom() {
     // 선택했을 때만 보이는 손잡이: 왼쪽 위 회전, 오른쪽 위 삭제(보관함으로)
     const rot = document.createElement("button");
     rot.className = "ph ph-rot";
-    rot.textContent = "⟳";
+    rot.innerHTML = ICON_ROTATE;
     rot.title = "드래그해서 회전 (누르면 15°)";
     rot.setAttribute("aria-label", "회전");
     rot.addEventListener("pointerdown", e => startRotate(e, p, el, img));
     const del = document.createElement("button");
     del.className = "ph ph-del";
-    del.textContent = "🗑";
+    del.innerHTML = ICON_TRASH;
     del.title = "방에서 빼기 (보관함으로)";
     del.setAttribute("aria-label", "방에서 빼기");
     del.addEventListener("pointerdown", e => e.stopPropagation());
@@ -1707,6 +1716,7 @@ function renderRoom() {
   }
   $("roomEmpty").classList.toggle("hidden", state.room.length > 0);
   $("roomTools").classList.toggle("hidden", !state.room.some(p => p.uid === selected));
+  syncSize();
 
   const tray = $("tray");
   tray.innerHTML = "";
@@ -1743,6 +1753,7 @@ function startDrag(e, p, el) {
   document.querySelectorAll(".placed.sel").forEach(x => x.classList.remove("sel"));
   el.classList.add("sel");
   $("roomTools").classList.remove("hidden");
+  syncSize();
   el.setPointerCapture(e.pointerId);
   const move = ev => {
     p.x = Math.min(100, Math.max(0, (ev.clientX - ox - rect.left) / rect.width * 100));
@@ -1760,6 +1771,9 @@ function startDrag(e, p, el) {
   el.addEventListener("pointerup", up);
   el.addEventListener("pointercancel", up);
 }
+// 손잡이 아이콘 (이모지는 기기마다 작고 흐릿하게 보여서 선 아이콘으로 그림)
+const ICON_ROTATE = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>`;
+const ICON_TRASH = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v5.5M14 11v5.5"/></svg>`;
 const placedTransform = p => `rotate(${p.rot || 0}deg) scaleX(${p.flip ? -1 : 1})`;
 // 회전 손잡이: 굿즈 중심을 기준으로 끌어서 자유 회전, 0°·90° 근처에서는 살짝 붙고, 끌지 않고 누르면 15°씩
 function startRotate(e, p, el, img) {
@@ -1797,6 +1811,22 @@ $("roomEl").addEventListener("pointerdown", e => {
   selected = null;
   renderRoom();
 });
+// 크기 슬라이더: 선택한 굿즈의 폭(방 너비 대비 %)을 바로바로 바꾸고, 손을 떼면 저장
+function syncSize() {
+  const p = state.room.find(x => x.uid === selected);
+  if (!p) return;
+  $("sizeRange").value = p.s;
+  $("sizeVal").textContent = `${Math.round(p.s)}%`;
+}
+$("sizeRange").oninput = () => {
+  const p = state.room.find(x => x.uid === selected);
+  if (!p) return;
+  p.s = Number($("sizeRange").value);
+  $("sizeVal").textContent = `${p.s}%`;
+  const el = document.querySelector(".placed.sel");
+  if (el) el.style.width = p.s + "%";
+};
+$("sizeRange").onchange = () => save();
 $("roomTools").onclick = e => {
   const act = e.target.closest("button")?.dataset.act;
   const p = state.room.find(x => x.uid === selected);
